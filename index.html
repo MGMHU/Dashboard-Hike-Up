@@ -475,6 +475,61 @@
   }
   .alert.error { background: #fde2e2; color: #8a1f1f; }
   .alert.success { background: #d9f5e3; color: #156b39; }
+
+  /* ===================== Login ===================== */
+  #loginOverlay { background: var(--bg); overflow: hidden; }
+  .login-skeleton {
+    position: absolute; inset: 0; padding: 22px 26px;
+    display: flex; gap: 18px;
+    filter: blur(7px); opacity: 0.5; pointer-events: none;
+    -webkit-user-select: none; user-select: none;
+  }
+  .sk-side { width: 210px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px; }
+  .sk-main { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .sk-row { display: flex; gap: 14px; }
+  .sk-block { background: #e7e8ec; border-radius: 14px; position: relative; overflow: hidden; }
+  .sk-block::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.65), transparent);
+    transform: translateX(-100%); animation: skShimmer 1.7s infinite;
+  }
+  @keyframes skShimmer { 100% { transform: translateX(100%); } }
+  .login-scrim {
+    position: absolute; inset: 0;
+    background: radial-gradient(120% 90% at 50% 38%, rgba(12,15,20,0.18), rgba(12,15,20,0.55));
+  }
+  .login-card {
+    position: relative; z-index: 2;
+    width: 100%; max-width: 384px;
+    background: #000; color: #fff;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 22px; padding: 34px 30px 30px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+  .login-card .login-logo { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .login-card .login-logo img { max-width: 200px; height: auto; display: block; }
+  .login-card .login-mark { width: 46px; height: 46px; flex-shrink: 0; }
+  .login-card .login-word { font-size: 25px; font-weight: 300; letter-spacing: 0.3px; color: #d7dee2; }
+  .login-card .login-word strong { font-weight: 800; color: #fff; }
+  .login-card .login-sub { text-align: center; color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 22px; }
+  .login-field { margin-bottom: 14px; }
+  .login-label { display: block; font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 6px; }
+  .login-input {
+    width: 100%; background: #13171c; color: #fff;
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
+    padding: 11px 13px; font-size: 14px; font-family: inherit;
+  }
+  .login-input::placeholder { color: rgba(255,255,255,0.32); }
+  .login-input:focus { outline: none; border-color: #3fb6c2; box-shadow: 0 0 0 3px rgba(63,182,194,0.18); }
+  .login-btn {
+    width: 100%; border: none; border-radius: 10px; padding: 12px;
+    font-size: 14px; font-weight: 600; color: #fff; cursor: pointer;
+    background: linear-gradient(120deg, #2a8aa8, #3fc4c9);
+    transition: filter 0.12s, transform 0.06s;
+  }
+  .login-btn:hover { filter: brightness(1.06); }
+  .login-btn:active { transform: translateY(1px); }
+  @media (max-width: 560px) { .login-skeleton .sk-side { display: none; } }
   @media (max-width: 980px) {
     .sidebar { width: 64px; }
     .sidebar .brand-name, .sidebar-user .info, .nav-item span { display: none; }
@@ -495,25 +550,73 @@
 <body>
 <!-- ===================== Écran de connexion (Supabase) ===================== -->
 <div id="loginOverlay" style="display:none; position:fixed; inset:0; z-index:9999;
-     background:var(--bg); align-items:center; justify-content:center;">
-  <div style="width:100%; max-width:380px; background:var(--card); border:1px solid var(--border);
-       border-radius:var(--radius); box-shadow:var(--shadow); padding:28px 26px;">
-    <h2 style="margin:0 0 4px; font-size:20px; letter-spacing:-0.01em;">Dashboard commercial</h2>
-    <p style="margin:0 0 18px; color:var(--text-muted); font-size:13.5px;">Connectez-vous pour accéder à vos données.</p>
-    <div class="field" style="margin-bottom:10px;">
-      <label style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:5px;">E-mail</label>
-      <input type="email" class="input" id="loginEmail" placeholder="vous@exemple.com" autocomplete="username"
-        style="width:100%; padding:9px 11px; border:1px solid var(--border-strong); border-radius:8px; font-size:14px;">
+     align-items:center; justify-content:center;">
+
+  <!-- Dashboard en skeleton flou (décoratif) -->
+  <div class="login-skeleton" aria-hidden="true">
+    <div class="sk-side">
+      <div class="sk-block" style="height:44px;"></div>
+      <div class="sk-block" style="height:30px;"></div>
+      <div class="sk-block" style="height:30px;"></div>
+      <div class="sk-block" style="height:30px; margin-top:auto;"></div>
     </div>
-    <div class="field" style="margin-bottom:14px;">
-      <label style="display:block; font-size:12.5px; color:var(--text-muted); margin-bottom:5px;">Mot de passe</label>
-      <input type="password" class="input" id="loginPassword" placeholder="••••••••" autocomplete="current-password"
-        style="width:100%; padding:9px 11px; border:1px solid var(--border-strong); border-radius:8px; font-size:14px;">
+    <div class="sk-main">
+      <div class="sk-block" style="height:54px; width:55%;"></div>
+      <div class="sk-block" style="height:60px;"></div>
+      <div class="sk-row">
+        <div class="sk-block" style="height:110px; flex:1;"></div>
+        <div class="sk-block" style="height:110px; flex:1;"></div>
+        <div class="sk-block" style="height:110px; flex:1;"></div>
+      </div>
+      <div class="sk-block" style="height:230px;"></div>
+      <div class="sk-block" style="height:180px;"></div>
     </div>
-    <div id="loginAlert" style="margin-bottom:10px;"></div>
-    <button class="btn" id="loginSubmit"
-      style="width:100%; padding:10px; background:var(--accent); color:#fff; border:none;
-      border-radius:8px; font-size:14px; font-weight:600; cursor:pointer;">Se connecter</button>
+  </div>
+  <div class="login-scrim" aria-hidden="true"></div>
+
+  <!-- Carte de connexion -->
+  <div class="login-card">
+    <div class="login-logo">
+      <!-- Logo : remplacé par l'image envoyée si présente -->
+      <img id="loginLogoImg" src="" alt="Hike UP" style="display:none;">
+      <span id="loginLogoFallback" style="display:flex; align-items:center; gap:12px;">
+        <span class="login-mark">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 107.34 115.85" width="44" height="47">
+            <defs>
+              <linearGradient id="huG1" x1="-74.4" y1="-149.95" x2="63.39" y2="12.58" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#435d9c"/><stop offset=".24" stop-color="#4577a1"/><stop offset=".66" stop-color="#4aa2a9"/><stop offset=".88" stop-color="#4cb3ad"/>
+              </linearGradient>
+              <linearGradient id="huG2" x1="23.36" y1="75.43" x2="122.15" y2="130.65" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#00aae9"/><stop offset=".4" stop-color="#176bba"/><stop offset=".72" stop-color="#284099"/><stop offset=".88" stop-color="#2f308d"/>
+              </linearGradient>
+              <linearGradient id="huG3" x1="28.45" y1="8.49" x2="61.31" y2="19.3" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#1a8ba1"/><stop offset=".05" stop-color="#1e8da1"/><stop offset=".6" stop-color="#49aaa9"/><stop offset=".88" stop-color="#5ab6ad"/>
+              </linearGradient>
+              <linearGradient id="huG4" x1="20.54" y1="77.29" x2="21.91" y2="12.01" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#3974b7"/><stop offset=".94" stop-color="#4dafc5"/>
+              </linearGradient>
+            </defs>
+            <path d="M97.55,51.06c-5.4,0-9.79,4.39-9.79,9.79s4.39,9.79,9.79,9.79,9.79-4.39,9.79-9.79-4.39-9.79-9.79-9.79Z" fill="url(#huG1)"/>
+            <path d="M30.67,28.1c3.69-3.61,8.12-6.49,13.12-8.39.66-.26,1.29-.48,1.9-.66.45-.16.93-.3,1.41-.42.42-.13.79-.22,1.15-.29.25-.07.5-.13.75-.18.31-.08.63-.14.94-.2.26-.06.55-.12.87-.16.45-.08.9-.16,1.36-.21.54-.08,1.06-.15,1.58-.19.55-.06,1.15-.1,1.76-.13h.1c.62-.04,1.27-.06,2.03-.06,9.61,0,18.31,3.34,25.17,9.66,2.62,2.42,6.65,2.63,9.57.51l8.5-6.18C90.36,7.7,74.43,0,56.81,0,25.49,0,0,25.95,0,57.84c0,.56,0,1.12.03,1.66,0,.64.04,1.25.08,1.88.02.38.06.77.09,1.16,3.75-13.87,15.93-26.42,30.48-34.43h-.01Z" fill="url(#huG2)"/>
+            <path d="M48.19,115.16c.82.13,1.51.22,2.15.29.64.08,1.23.13,1.82.18l.24.02c.7.05,1.41.09,2.11.12.79.04,1.55.05,2.3.05,17.62,0,33.55-7.69,44.09-21.2l-8.51-6.18c-2.92-2.12-6.94-1.91-9.56.51-6.88,6.33-15.64,9.68-25.34,9.68-.66,0-1.26-.02-1.83-.05-.18,0-.35,0-.48-.02-.55-.02-1.09-.07-1.64-.12-.12,0-.25-.02-.37-.04-.59-.06-1.21-.14-1.89-.25-.53-.07-1.07-.17-1.6-.29-.75-.14-1.58-.34-2.4-.56-.61-.17-1.2-.34-1.79-.53-.56-.18-1.12-.37-1.66-.58l-.43-.17c-.51-.2-1.05-.42-1.58-.66-.58-.25-1.22-.56-1.9-.92-.38-.19-.79-.41-1.2-.65-.29-.16-.57-.32-.85-.49-.72-.41-1.51-.92-2.3-1.49-.23-.15-.52-.36-.82-.59-1.18-.86-2.37-1.85-3.46-2.9-.22-.21-.45-.43-.67-.66-.29-.29-.59-.59-.87-.9-.23-.23-.46-.48-.7-.76-.87-.96-1.72-2.01-2.52-3.13.83,3.66,2.06,8.02,3.91,12.53,2.67,6.51,6.64,13.3,12.59,18.72,1.56.39,3.15.73,4.76.99l.39.07v-.02Z" fill="url(#huG3)"/>
+            <path d="M30.45,95.39c-1.86-4.51-3.08-8.87-3.91-12.53-.05-.07-.11-.14-.16-.21-.28-.35-.53-.72-.78-1.12-.52-.77-1.02-1.57-1.43-2.32-.17-.27-.35-.61-.53-.94-.15-.28-.31-.58-.46-.88l-.44-.9c-2.73-5.69-4.17-12.12-4.17-18.65,0-11.68,4.5-22.28,12.11-29.73-1.04.57-2.08,1.17-3.1,1.79-1.07.66-2.12,1.34-3.15,2.05-2.87,1.91-5.58,4.02-8.1,6.28-1.14,1.03-2.26,2.08-3.31,3.17-3.97,4.05-7.3,8.5-9.71,13.2-.32.62-.63,1.25-.92,1.89-.58,1.27-1.09,2.55-1.52,3.84-.25.74-.47,1.47-.67,2.21.16,1.95.42,3.93.79,5.99l.46,2.29c4.82,21.56,20.89,38.09,41.6,43.29-5.95-5.42-9.92-12.21-12.59-18.72h0Z" fill="url(#huG4)"/>
+          </svg>
+        </span>
+        <span class="login-word">Hike <strong>UP</strong></span>
+      </span>
+    </div>
+    <div class="login-sub">Connectez-vous pour accéder à votre tableau de bord.</div>
+
+    <div class="login-field">
+      <label class="login-label" for="loginEmail">E-mail</label>
+      <input type="email" class="login-input" id="loginEmail" placeholder="vous@exemple.com" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label class="login-label" for="loginPassword">Mot de passe</label>
+      <input type="password" class="login-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="loginAlert" style="margin-bottom:12px;"></div>
+    <button class="login-btn" id="loginSubmit">Se connecter</button>
   </div>
 </div>
 <div class="app">
@@ -575,7 +678,7 @@
       <!-- KPI grid -->
       <div class="kpi-grid">
         <div class="card kpi">
-          <div class="label">Pipeline total <span class="help">?<span class="tip">Somme des montants de toutes les opportunités du filtre courant.<br><code>Σ Montant</code></span></span></div>
+          <div class="label">Pipeline total <span class="help">?<span class="tip">Somme des montants des opportunités <strong>ouvertes</strong> (hors Gagné/Perdu). Sous le montant : nombre d'opportunités gagnées et perdues.<br><code>Σ Montant (ouvertes)</code></span></span></div>
           <div class="value" id="kpiPipeline">—</div>
         </div>
         <div class="card kpi">
@@ -856,6 +959,10 @@ const SB_READY = !!(window.supabase
   && !SUPABASE_URL.includes("VOTRE-PROJET")
   && !SUPABASE_ANON_KEY.includes("VOTRE-CLE"));
 const sb = SB_READY ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+// Logo de la page de connexion. Laisser vide = logo de secours (SVG + "Hike UP").
+// Pour utiliser votre image : remplacez "" par "data:image/png;base64,XXXX".
+const LOGIN_LOGO_DATAURL = "";
+
 let currentProfile = null;     // { role, client_id }
 let adminClients = [];         // [{id, name, logo_url}] (admin)
 let adminSelectedClientId = null;   // cible d'import (menu déroulant admin)
@@ -1135,7 +1242,7 @@ function renderKPIs(rows) {
   const won = rows.filter(isWon);
   const lost = rows.filter(isLost);
   const withAmount = rows.filter(r => r.amount > 0);
-  const pipelineTotal = rows.reduce((s,r) => s + r.amount, 0);
+  const pipelineTotal = active.reduce((s,r) => s + r.amount, 0);  // opportunités ouvertes uniquement
   const wonTotal = won.reduce((s,r) => s + r.amount, 0);
   const weighted = rows.reduce((s,r) => s + r.amount * (r.percentage/100), 0);
   const activeCount = active.length;
@@ -1144,7 +1251,8 @@ function renderKPIs(rows) {
   const avgBasket = withAmount.length > 0
     ? withAmount.reduce((s,r) => s + r.amount, 0) / withAmount.length
     : 0;
-  document.getElementById('kpiPipeline').innerHTML = `${fmtEUR(pipelineTotal)}`;
+  document.getElementById('kpiPipeline').innerHTML =
+    `${fmtEUR(pipelineTotal)}<div style="font-size:11px; font-weight:500; color:var(--text-faint); margin-top:3px; letter-spacing:0;">${won.length} gagné${won.length > 1 ? 's' : ''} · ${lost.length} perdu${lost.length > 1 ? 's' : ''}</div>`;
   document.getElementById('kpiWon').innerHTML      = `${fmtEUR(wonTotal)}`;
   document.getElementById('kpiWeighted').innerHTML = `${fmtEUR(weighted)}`;
   document.getElementById('kpiActive').innerHTML   = `${activeCount}`;
@@ -2188,9 +2296,18 @@ function initSidebarToggle() {
   });
 }
 
+function applyLoginLogo() {
+  if (!LOGIN_LOGO_DATAURL) return;
+  const img = document.getElementById('loginLogoImg');
+  const fb = document.getElementById('loginLogoFallback');
+  if (img) { img.src = LOGIN_LOGO_DATAURL; img.style.display = 'block'; }
+  if (fb) fb.style.display = 'none';
+}
+
 async function initApp() {
   loadBranding();
   initSidebarToggle();
+  applyLoginLogo();
   if (!sb) {
     // Mode démo local : aucune config Supabase → on garde le comportement d'origine
     hideLogin();
