@@ -754,6 +754,13 @@
             <button class="btn" id="editClientSave">Enregistrer les modifications</button>
           </div>
         </div>
+        <div style="border:1px solid var(--border); border-radius:10px; padding:14px; margin-top:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0; font-size:14px;">4. Comptes existants (par client)</h3>
+            <button class="btn secondary" id="usersRefresh" type="button" style="font-size:12px; padding:6px 10px;">Rafraîchir</button>
+          </div>
+          <div id="usersList" class="muted" style="font-size:12.5px;">Chargement…</div>
+        </div>
       </div>
       <!-- User tab -->
       <div class="atab-pane" data-pane="user" style="display:none">
@@ -1603,7 +1610,121 @@ if (newUserBtn) newUserBtn.addEventListener('click', async () => {
   document.getElementById('newUserEmail').value = '';
   document.getElementById('newUserPassword').value = '';
   box.innerHTML = `<div class="alert success">Accès créé pour ${escapeHTML(email)}. Communiquez-lui l'URL du dashboard + ces identifiants.</div>`;
+  renderUsersList();
 });
+
+/* ===== 4. Comptes existants : lister / modifier / supprimer ===== */
+function clientOptionsHtml(selectedId) {
+  return adminClients
+    .map(c => `<option value="${c.id}"${c.id === selectedId ? ' selected' : ''}>${escapeHTML(c.name)}</option>`)
+    .join('');
+}
+
+async function renderUsersList() {
+  const box = document.getElementById('usersList');
+  if (!box || !sb) return;
+  box.textContent = 'Chargement…';
+  const { data, error } = await sb.rpc('admin_list_users');
+  if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
+  const users = data || [];
+  if (!users.length) { box.textContent = 'Aucun compte.'; return; }
+  // Groupe par client
+  const groups = {};
+  users.forEach(u => {
+    const key = u.client_name || (u.role === 'admin' ? 'Administrateurs' : 'Sans client');
+    (groups[key] = groups[key] || []).push(u);
+  });
+  let html = '';
+  Object.keys(groups).sort((a, b) => a.localeCompare(b, 'fr')).forEach(g => {
+    html += `<div style="margin:10px 0 4px; font-weight:600; color:var(--text);">${escapeHTML(g)}</div>`;
+    groups[g].forEach(u => {
+      const roleBadge = u.role === 'admin'
+        ? '<span class="badge b-devis" style="font-size:11px;">admin</span>'
+        : '<span class="badge b-nouveau" style="font-size:11px;">client</span>';
+      html += `
+        <div class="user-row" data-id="${u.id}" style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-bottom:6px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <div style="min-width:0;">${escapeHTML(u.email)} ${roleBadge}</div>
+            <div style="display:flex; gap:6px; flex-shrink:0;">
+              <button class="btn secondary u-edit" type="button" style="font-size:11.5px; padding:5px 9px;">Modifier</button>
+              <button class="btn secondary u-del" type="button" style="font-size:11.5px; padding:5px 9px; color:#a02323;">Supprimer</button>
+            </div>
+          </div>
+          <div class="u-editform" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <label style="font-size:11.5px;">Client
+                <select class="u-client input" style="margin-top:3px;">${clientOptionsHtml(u.client_id)}</select>
+              </label>
+              <label style="font-size:11.5px;">Rôle
+                <select class="u-role input" style="margin-top:3px;">
+                  <option value="client"${u.role === 'client' ? ' selected' : ''}>client</option>
+                  <option value="admin"${u.role === 'admin' ? ' selected' : ''}>administrateur</option>
+                </select>
+              </label>
+              <label style="font-size:11.5px;">Nouvel e-mail (optionnel)
+                <input class="u-email input" type="email" placeholder="${escapeHTML(u.email)}" style="margin-top:3px;">
+              </label>
+              <label style="font-size:11.5px;">Nouveau mot de passe (optionnel)
+                <input class="u-pass input" type="text" placeholder="≥ 8 caractères" style="margin-top:3px;">
+              </label>
+            </div>
+            <div class="u-alert"></div>
+            <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
+              <button class="btn secondary u-cancel" type="button" style="font-size:11.5px; padding:5px 9px;">Annuler</button>
+              <button class="btn u-save" type="button" style="font-size:11.5px; padding:5px 9px;">Enregistrer</button>
+            </div>
+          </div>
+        </div>`;
+    });
+  });
+  box.innerHTML = html;
+}
+
+async function manageUser(payload) {
+  const { data, error } = await sb.functions.invoke('admin-manage-user', { body: payload });
+  let msg = (data && data.error) ? data.error : ((error && error.message) || '');
+  if (error && error.context && typeof error.context.json === 'function') {
+    try { const b = await error.context.json(); if (b && b.error) msg = b.error; } catch (_) {}
+  }
+  return { ok: !(error || (data && data.error)), msg };
+}
+
+// Délégation des clics dans la liste des comptes
+document.addEventListener('click', async (e) => {
+  const row = e.target.closest && e.target.closest('.user-row');
+  if (!row) return;
+  const id = row.dataset.id;
+  if (e.target.classList.contains('u-edit')) {
+    const form = row.querySelector('.u-editform');
+    form.style.display = (form.style.display === 'none') ? '' : 'none';
+  } else if (e.target.classList.contains('u-cancel')) {
+    row.querySelector('.u-editform').style.display = 'none';
+  } else if (e.target.classList.contains('u-del')) {
+    if (!confirm('Supprimer définitivement ce compte ? Cette action est irréversible.')) return;
+    e.target.disabled = true;
+    const res = await manageUser({ action: 'delete', user_id: id });
+    if (!res.ok) { alert('Échec : ' + res.msg); e.target.disabled = false; return; }
+    renderUsersList();
+  } else if (e.target.classList.contains('u-save')) {
+    const a = row.querySelector('.u-alert');
+    const client_id = row.querySelector('.u-client').value || null;
+    const role = row.querySelector('.u-role').value;
+    const email = row.querySelector('.u-email').value.trim();
+    const pass = row.querySelector('.u-pass').value;
+    if (pass && pass.length < 8) { a.innerHTML = '<div class="alert error">Mot de passe : 8 caractères minimum.</div>'; return; }
+    const payload = { action: 'update', user_id: id, client_id, role };
+    if (email) payload.email = email;
+    if (pass) payload.password = pass;
+    a.innerHTML = '<div class="alert">Enregistrement…</div>';
+    const res = await manageUser(payload);
+    if (!res.ok) { a.innerHTML = `<div class="alert error">${escapeHTML(res.msg)}</div>`; return; }
+    a.innerHTML = '<div class="alert success">Compte mis à jour.</div>';
+    setTimeout(renderUsersList, 700);
+  }
+});
+
+const usersRefreshBtn = document.getElementById('usersRefresh');
+if (usersRefreshBtn) usersRefreshBtn.addEventListener('click', renderUsersList);
 /* ======================== Branding ========================
    - Client (top-left)  : logo + nom
    - Utilisateur (bot.) : photo + nom
@@ -1781,17 +1902,20 @@ async function onAuthenticated(session) {
     .eq('id', session.user.id)
     .single();
   currentProfile = prof || { role: 'client', client_id: null };
-  // Nom + photo stockés sur le profil → source de vérité (synchronisés en local)
-  if (prof && prof.display_name) {
-    setStored(LS_KEYS.userName, prof.display_name);
-    applyUserName(prof.display_name);
-    const uName = document.getElementById('userNameInput');
-    if (uName) uName.value = prof.display_name;
-  }
+  // Nom affiché (bas à gauche) : display_name s'il existe, sinon l'e-mail
+  // (évite le libellé "Administrateur" par défaut pour les comptes sans nom).
+  const hasName = !!(prof && prof.display_name);
+  applyUserName(hasName ? prof.display_name : session.user.email);
+  setStored(LS_KEYS.userName, hasName ? prof.display_name : null);
+  const uNameInput = document.getElementById('userNameInput');
+  if (uNameInput) uNameInput.value = hasName ? prof.display_name : '';
   if (prof && prof.avatar_url) {
     setStored(LS_KEYS.userPic, prof.avatar_url);
     applyUserPic(prof.avatar_url);
   }
+  // Libellé du rôle réel
+  const roleEl = document.querySelector('#userBtn .role');
+  if (roleEl) roleEl.textContent = (currentProfile.role === 'admin') ? 'Administrateur' : 'Client';
   hideLogin();
   setupRoleUI();
   await loadFromSupabase();
@@ -1853,6 +1977,7 @@ async function loadFromSupabase() {
     adminClients = clients || [];
     if (!adminSelectedClientId && adminClients.length) adminSelectedClientId = adminClients[0].id;
     populateAdminClientSelect();
+    renderUsersList();
     clientId = adminSelectedClientId;
   } else {
     clientId = currentProfile ? currentProfile.client_id : null;
