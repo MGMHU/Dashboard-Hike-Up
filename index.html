@@ -64,6 +64,50 @@
   }
   .nav-item.active { background: #f1f2f5; }
   .nav-item svg { width: 16px; height: 16px; stroke: var(--text-muted); flex-shrink: 0; }
+
+  /* Bouton de repli du panneau */
+  .sidebar-toggle {
+    margin-left: auto; background: none; border: none; cursor: pointer;
+    color: var(--text-muted); width: 28px; height: 28px; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .sidebar-toggle:hover { background: #f1f2f5; color: var(--text); }
+  .sidebar-toggle svg { width: 16px; height: 16px; }
+
+  /* Liste des clients (sidebar, mode admin) */
+  .sidebar-section-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-faint); padding: 10px 12px 4px; font-weight: 600;
+  }
+  #clientNavList { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+  .client-nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 10px; border-radius: 8px; cursor: pointer; user-select: none;
+    font-size: 13px; color: var(--text);
+  }
+  .client-nav-item:hover { background: #f5f6f8; }
+  .client-nav-item.active { background: #f1f2f5; font-weight: 600; }
+  .client-nav-logo {
+    width: 28px; height: 28px; border-radius: 8px; overflow: hidden; flex-shrink: 0;
+    background: #fff; border: 1px solid var(--border-strong);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .client-nav-logo img, .client-nav-logo svg { width: 100%; height: 100%; object-fit: contain; }
+  .client-nav-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* État replié (manuel) */
+  .sidebar.collapsed { width: 64px; }
+  .sidebar.collapsed .brand-name,
+  .sidebar.collapsed .sidebar-user .info,
+  .sidebar.collapsed .nav-item span,
+  .sidebar.collapsed .client-nav-name,
+  .sidebar.collapsed .sidebar-section-title,
+  .sidebar.collapsed .sidebar-brand .client-logo { display: none; }
+  .sidebar.collapsed .sidebar-brand { justify-content: center; padding: 16px 0; }
+  .sidebar.collapsed .sidebar-toggle { margin-left: 0; }
+  .sidebar.collapsed .nav-item,
+  .sidebar.collapsed .client-nav-item,
+  .sidebar.collapsed .sidebar-user { justify-content: center; }
   .sidebar-user {
     border-top: 1px solid var(--border);
     padding: 14px 14px;
@@ -478,11 +522,19 @@
     <div class="sidebar-brand">
       <div class="client-logo" id="clientLogo"></div>
       <span class="brand-name" id="clientName">Hike UP</span>
+      <button class="sidebar-toggle" id="sidebarToggle" type="button" title="Réduire / agrandir le panneau">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><line x1="10" y1="5" x2="10" y2="19"/></svg>
+      </button>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-item active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 4 4 5-7"/></svg>
+      <div class="nav-item active" id="navOverview" title="Toutes les opportunités — tous les clients">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
         <span>Vue d'ensemble</span>
+      </div>
+      <!-- Liste des clients (admin) -->
+      <div id="clientNav" style="display:none;">
+        <div class="sidebar-section-title">Clients</div>
+        <div id="clientNavList"></div>
       </div>
     </nav>
     <div class="sidebar-user" id="userBtn" title="Ouvrir l'administration">
@@ -628,7 +680,7 @@
       <!-- Sélecteur de client (mode Supabase admin) -->
       <div id="adminClientBar" style="display:none; margin-bottom:14px; padding:12px;
            background:var(--accent-soft); border-radius:10px;">
-        <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Client actif (affichage &amp; import)</label>
+        <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Client cible pour l'import des données</label>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <select id="adminClientSelect" class="input"
             style="flex:1; min-width:180px; padding:8px 10px; border:1px solid var(--border-strong); border-radius:8px; font-size:13.5px;"></select>
@@ -806,7 +858,10 @@ const SB_READY = !!(window.supabase
 const sb = SB_READY ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let currentProfile = null;     // { role, client_id }
 let adminClients = [];         // [{id, name, logo_url}] (admin)
-let adminSelectedClientId = null;
+let adminSelectedClientId = null;   // cible d'import (menu déroulant admin)
+let adminViewClientIds = [];        // clients affichés dans le dashboard (multi-sélection)
+let isFullAdmin = false;            // admin principal (non restreint)
+let adminVisibility = {};           // { admin_user_id: [client_id, ...] }
 /* ======================== Embedded JSON (default) ======================== */
 const DEFAULT_DATA = {"count":0,"opportunities":[]};
 /* ======================== Helpers ======================== */
@@ -1577,8 +1632,8 @@ if (editClientSaveEl) editClientSaveEl.addEventListener('click', async () => {
   await refreshAdminClients();
   document.getElementById('editClientSelect').value = id;
   loadEditClientFields();
-  // Met à jour la marque en haut à gauche si c'est le client actuellement affiché
-  if (id === adminSelectedClientId) { applyClientName(name); applyClientLogo(logo || null); }
+  // Met à jour la marque en haut à gauche si ce client fait partie de la vue
+  if (adminViewClientIds.includes(id)) applyViewBranding();
   box.innerHTML = '<div class="alert success">Modifications enregistrées.</div>';
   setTimeout(() => { box.innerHTML = ''; }, 2400);
 });
@@ -1620,6 +1675,22 @@ function clientOptionsHtml(selectedId) {
     .join('');
 }
 
+// Charge si l'admin courant est "principal" + la carte des visibilités
+async function loadAdminVisibility() {
+  isFullAdmin = false;
+  adminVisibility = {};
+  try {
+    const { data: full } = await sb.rpc('is_full_admin');
+    isFullAdmin = !!full;
+    if (isFullAdmin) {
+      const { data } = await sb.rpc('admin_visibility_map');
+      (data || []).forEach(r => {
+        (adminVisibility[r.admin_id] = adminVisibility[r.admin_id] || []).push(r.client_id);
+      });
+    }
+  } catch (_) {}
+}
+
 async function renderUsersList() {
   const box = document.getElementById('usersList');
   if (!box || !sb) return;
@@ -1641,6 +1712,18 @@ async function renderUsersList() {
       const roleBadge = u.role === 'admin'
         ? '<span class="badge b-devis" style="font-size:11px;">admin</span>'
         : '<span class="badge b-nouveau" style="font-size:11px;">client</span>';
+      const vis = adminVisibility[u.id] || [];
+      const visBlock = (u.role === 'admin' && isFullAdmin) ? `
+            <div class="u-vis" style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+              <div style="font-size:11.5px; font-weight:600; margin-bottom:4px;">Clients visibles pour cet admin <span class="muted" style="font-weight:400;">(aucun coché = tous)</span></div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px 14px;">
+                ${adminClients.map(c => `<label style="font-size:11.5px; display:flex; gap:4px; align-items:center;"><input type="checkbox" class="u-vis-c" value="${c.id}"${vis.includes(c.id) ? ' checked' : ''}> ${escapeHTML(c.name)}</label>`).join('')}
+              </div>
+              <div class="u-vis-alert"></div>
+              <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+                <button class="btn secondary u-vis-save" type="button" style="font-size:11.5px; padding:5px 9px;">Enregistrer la visibilité</button>
+              </div>
+            </div>` : '';
       html += `
         <div class="user-row" data-id="${u.id}" style="border:1px solid var(--border); border-radius:8px; padding:8px 10px; margin-bottom:6px;">
           <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
@@ -1667,7 +1750,7 @@ async function renderUsersList() {
               <label style="font-size:11.5px;">Nouveau mot de passe (optionnel)
                 <input class="u-pass input" type="text" placeholder="≥ 8 caractères" style="margin-top:3px;">
               </label>
-            </div>
+            </div>${visBlock}
             <div class="u-alert"></div>
             <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
               <button class="btn secondary u-cancel" type="button" style="font-size:11.5px; padding:5px 9px;">Annuler</button>
@@ -1720,6 +1803,16 @@ document.addEventListener('click', async (e) => {
     if (!res.ok) { a.innerHTML = `<div class="alert error">${escapeHTML(res.msg)}</div>`; return; }
     a.innerHTML = '<div class="alert success">Compte mis à jour.</div>';
     setTimeout(renderUsersList, 700);
+  } else if (e.target.classList.contains('u-vis-save')) {
+    const a = row.querySelector('.u-vis-alert');
+    const ids = Array.from(row.querySelectorAll('.u-vis-c:checked')).map(c => c.value);
+    a.innerHTML = '<div class="alert">Enregistrement…</div>';
+    const res = await manageUser({ action: 'set_visibility', user_id: id, client_ids: ids });
+    if (!res.ok) { a.innerHTML = `<div class="alert error">${escapeHTML(res.msg)}</div>`; return; }
+    adminVisibility[id] = ids;
+    a.innerHTML = ids.length
+      ? `<div class="alert success">Visibilité enregistrée (${ids.length} client(s)).</div>`
+      : '<div class="alert success">Visibilité enregistrée : tous les clients.</div>';
   }
 });
 
@@ -1967,34 +2060,87 @@ async function refreshAdminClients() {
   const { data } = await sb.from('clients').select('id, name, logo_url').order('name');
   adminClients = data || [];
   populateAdminClientSelect();
+  renderClientNav();
 }
 async function loadFromSupabase() {
   const isAdmin = currentProfile && currentProfile.role === 'admin';
-  let clientId;
   if (isAdmin) {
-    // Charge la liste des clients pour le sélecteur
+    // Liste des clients
     const { data: clients } = await sb.from('clients').select('id, name, logo_url').order('name');
     adminClients = clients || [];
     if (!adminSelectedClientId && adminClients.length) adminSelectedClientId = adminClients[0].id;
+    // Vue par défaut : tous les clients ; purge les ids obsolètes
+    adminViewClientIds = adminViewClientIds.filter(id => adminClients.some(c => c.id === id));
+    if (!adminViewClientIds.length) adminViewClientIds = adminClients.map(c => c.id);
     populateAdminClientSelect();
+    renderClientNav();
+    await loadAdminVisibility();
     renderUsersList();
-    clientId = adminSelectedClientId;
-  } else {
-    clientId = currentProfile ? currentProfile.client_id : null;
-  }
-  if (!clientId) {
-    loadData([]);
-    if (isAdmin) updateSubtitle();
+    await loadAdminView();
     return;
   }
-  // Branding : nom/logo du client affiché (priorité au réglage local s'il existe)
+  // Client (non-admin) : uniquement son propre client
+  const clientId = currentProfile ? currentProfile.client_id : null;
+  if (!clientId) { loadData([]); return; }
   await applyClientBranding(clientId, isAdmin);
   const { data, error } = await sb
-    .from('opportunities')
-    .select('payload')
-    .eq('client_id', clientId);   // RLS garantit déjà l'isolation côté client
+    .from('opportunities').select('payload').eq('client_id', clientId);
   if (error) { console.error(error); loadData([]); return; }
   loadData((data || []).map(r => r.payload));
+}
+
+// Charge les données pour les clients sélectionnés (admin, multi-sélection)
+async function loadAdminView() {
+  if (!adminViewClientIds.length) { loadData([]); updateSubtitle(); return; }
+  applyViewBranding();
+  const { data, error } = await sb
+    .from('opportunities').select('payload').in('client_id', adminViewClientIds);
+  if (error) { console.error(error); loadData([]); return; }
+  loadData((data || []).map(r => r.payload));
+}
+
+// Marque en haut à gauche selon la vue (1 client → sa marque ; sinon libellé agrégé)
+function applyViewBranding() {
+  // Un seul client sélectionné → sa marque (nom + logo)
+  if (adminViewClientIds.length === 1) {
+    const c = adminClients.find(x => x.id === adminViewClientIds[0]);
+    if (c) { applyClientName(c.name); applyClientLogo(c.logo_url || null); return; }
+  }
+  // Vue d'ensemble / plusieurs clients → marque de l'agence, sans logo
+  applyClientName(null);                       // → "Hike UP" (valeur par défaut)
+  const main = document.getElementById('clientLogo');
+  if (main) main.innerHTML = '';               // aucun logo affiché
+}
+
+// Construit la liste des clients dans la barre latérale (admin, multi-sélection)
+function renderClientNav() {
+  const wrap = document.getElementById('clientNav');
+  const list = document.getElementById('clientNavList');
+  const overview = document.getElementById('navOverview');
+  if (!wrap || !list) return;
+  const isAdmin = currentProfile && currentProfile.role === 'admin';
+  if (!isAdmin) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  // "Vue d'ensemble" = mode "tous les clients"
+  const allOn = adminClients.length > 0 && adminViewClientIds.length === adminClients.length;
+  if (overview) overview.classList.toggle('active', allOn);
+  let html = '';
+  adminClients.forEach(c => {
+    const on = !allOn && adminViewClientIds.includes(c.id);
+    const logo = c.logo_url ? `<img src="${c.logo_url}" alt="">` : CLIENT_LOGO_DEFAULT;
+    html += `<div class="client-nav-item${on ? ' active' : ''}" data-id="${c.id}" title="${escapeHTML(c.name)} — Ctrl/Cmd+clic pour multi-sélection">
+      <span class="client-nav-logo">${logo}</span>
+      <span class="client-nav-name">${escapeHTML(c.name)}</span>
+    </div>`;
+  });
+  list.innerHTML = html;
+}
+
+// Réinitialise les filtres du dashboard (commercial, statut, alerte)
+function resetDashboardFilters() {
+  selectedUserId = null;
+  statusFilterValue = 'all';
+  activeAlertKey = null;
 }
 async function applyClientBranding(clientId, isAdmin) {
   let client = adminClients.find(c => c.id === clientId);
@@ -2026,19 +2172,65 @@ async function pushToSupabase(rows) {
   }
   return { ok: true, msg: rows.length + ' opportunités enregistrées pour ce client.' };
 }
+// Repli du panneau latéral (persisté)
+function applySidebarCollapsed(collapsed) {
+  const el = document.querySelector('.sidebar');
+  if (el) el.classList.toggle('collapsed', collapsed);
+}
+function initSidebarToggle() {
+  const btn = document.getElementById('sidebarToggle');
+  try { if (localStorage.getItem('hu_sidebar_collapsed') === '1') applySidebarCollapsed(true); } catch (_) {}
+  if (btn) btn.addEventListener('click', () => {
+    const el = document.querySelector('.sidebar');
+    const next = !el.classList.contains('collapsed');
+    applySidebarCollapsed(next);
+    try { localStorage.setItem('hu_sidebar_collapsed', next ? '1' : '0'); } catch (_) {}
+  });
+}
+
 async function initApp() {
   loadBranding();
+  initSidebarToggle();
   if (!sb) {
     // Mode démo local : aucune config Supabase → on garde le comportement d'origine
     hideLogin();
     loadData(normalizeFromJSON(DEFAULT_DATA));
     return;
   }
-  // Sélecteur de client (admin) : recharge les données du client choisi
+  // Le menu déroulant admin ne sert qu'à choisir la cible d'IMPORT
   const sel = document.getElementById('adminClientSelect');
-  if (sel) sel.addEventListener('change', async () => {
-    adminSelectedClientId = sel.value;
-    await loadFromSupabase();
+  if (sel) sel.addEventListener('change', () => { adminSelectedClientId = sel.value; });
+
+  // "Vue d'ensemble" = afficher tous les clients (admin)
+  const overviewBtn = document.getElementById('navOverview');
+  if (overviewBtn) overviewBtn.addEventListener('click', async () => {
+    if (!(currentProfile && currentProfile.role === 'admin')) return;
+    adminViewClientIds = adminClients.map(c => c.id);
+    resetDashboardFilters();
+    renderClientNav();
+    await loadAdminView();
+  });
+
+  // Barre latérale : sélection multiple des clients à afficher
+  const navList = document.getElementById('clientNavList');
+  if (navList) navList.addEventListener('click', async (e) => {
+    const item = e.target.closest('.client-nav-item');
+    if (!item) return;
+    const id = item.dataset.id;
+    if (e.metaKey || e.ctrlKey) {
+      // Ctrl/Cmd + clic : multi-sélection (ajouter / retirer)
+      const allOn = adminViewClientIds.length === adminClients.length;
+      let base = allOn ? [] : adminViewClientIds.slice();
+      if (base.includes(id)) base = base.filter(x => x !== id);
+      else base.push(id);
+      adminViewClientIds = base.length ? base : [id];
+    } else {
+      // Clic simple : ce client uniquement
+      adminViewClientIds = [id];
+    }
+    resetDashboardFilters();
+    renderClientNav();
+    await loadAdminView();
   });
   // Login
   document.getElementById('loginSubmit').addEventListener('click', doLogin);
