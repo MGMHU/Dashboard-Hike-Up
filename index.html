@@ -1279,6 +1279,32 @@ const STATUS_COLOR = {
   "Gagné": "#7fd4a0",
   "Perdu": "#f6a8a8",
 };
+// Couleurs de badge (fond + texte) par statut. Tout statut non listé reçoit
+// une couleur stable dérivée de son nom → aucun statut ne reste sans couleur.
+const STATUS_BADGE = {
+  "Nouveau": { bg: "#e8f6ee", fg: "#1f7a3e" },
+  "Rendez-vous prévu": { bg: "#e0f4f6", fg: "#126b76" },
+  "Devis/Offre envoyé": { bg: "#eaf0ff", fg: "#2f4dcb" },
+  "En attente/à relancer": { bg: "#fff3d6", fg: "#8a6500" },
+  "En attente": { bg: "#fff3d6", fg: "#8a6500" },
+  "Relance Devis": { bg: "#f3e8ff", fg: "#6b2fbf" },
+  "Relance devis": { bg: "#f3e8ff", fg: "#6b2fbf" },
+  "Gagné": { bg: "#d9f5e3", fg: "#156b39" },
+  "Perdu": { bg: "#fde2e2", fg: "#a02323" },
+};
+const BADGE_PALETTE = [
+  { bg: "#eef0ff", fg: "#3a47b3" }, { bg: "#e1f5ee", fg: "#0f6e56" },
+  { bg: "#fde7e1", fg: "#a8431f" }, { bg: "#fbeaf0", fg: "#993556" },
+  { bg: "#fff3d6", fg: "#8a6500" }, { bg: "#e0f4f6", fg: "#126b76" },
+  { bg: "#f3e8ff", fg: "#6b2fbf" }, { bg: "#eef1f4", fg: "#4a4a55" },
+];
+function statusBadge(status) {
+  if (STATUS_BADGE[status]) return STATUS_BADGE[status];
+  let hsh = 0; const s = status || '';
+  for (let i = 0; i < s.length; i++) hsh = (hsh * 31 + s.charCodeAt(i)) >>> 0;
+  return BADGE_PALETTE[hsh % BADGE_PALETTE.length];
+}
+function statusFill(status) { return STATUS_COLOR[status] || statusBadge(status).bg; }
 const STATUS_ORDER = [
   "Nouveau",
   "Rendez-vous prévu",
@@ -1594,7 +1620,7 @@ function renderKPIs(rows) {
   const _weightedM = rs => rs.reduce((s,r) => s + r.amount * (r.percentage/100), 0);
   const _activeCnt = rs => rs.filter(isActive).length;
   const _convM = rs => { const w = rs.filter(isWon).length, l = rs.filter(isLost).length; return (w+l) ? w/(w+l)*100 : 0; };
-  const _winDevisM = rs => { const w = rs.filter(isWon).length; const dr = rs.filter(r => r.status==='Devis/Offre envoyé' || isWon(r) || isLost(r)).length; return dr ? w/dr*100 : 0; };
+  const _winDevisM = rs => { const w = rs.filter(isWon).length; const dr = rs.filter(r => r.status==='Devis/Offre envoyé' || r.status==='En attente/à relancer' || isWon(r) || isLost(r)).length; return dr ? w/dr*100 : 0; };
   const _avgDevisM = rs => { const d = rs.filter(r => r.status==='Devis/Offre envoyé' && r.amount>0); return d.length ? d.reduce((s,r)=>s+r.amount,0)/d.length : 0; };
   const _devisCnt = rs => rs.filter(r => r.status==='Devis/Offre envoyé').length;
   const _cycleM = rs => { const v = rs.filter(isWon).map(r => { const a=parseDateFR(r.createdAt), b=parseDateFR(r.followUp); return (a&&b)?Math.round((b-a)/86400000):null; }).filter(x => x!=null && x>=0); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : 0; };
@@ -1621,7 +1647,7 @@ function renderKPIs(rows) {
 
   // --- KPI additionnels ---
   // Transformation des devis
-  const devisReached = rows.filter(r => r.status === 'Devis/Offre envoyé' || isWon(r) || isLost(r));
+  const devisReached = rows.filter(r => r.status === 'Devis/Offre envoyé' || r.status === 'En attente/à relancer' || isWon(r) || isLost(r));
   const winDevis = devisReached.length ? (won.length / devisReached.length) * 100 : 0;
   // Cycle de vente moyen (création → date de suivi des gagnées)
   const daysBetween = (a, b) => { const d1 = parseDateFR(a), d2 = parseDateFR(b); if (!d1 || !d2) return null; return Math.round((d2 - d1) / 86400000); };
@@ -1655,7 +1681,7 @@ function renderFunnel(rows) {
   const isWon = r => r.status === 'Gagné', isLost = r => r.status === 'Perdu';
   const nouveau = rows.filter(r => r.status === 'Nouveau').length;
   const reachedRdv = total - nouveau;   // a dépassé "Nouveau" → a eu un rendez-vous (approximation)
-  const reached = rows.filter(r => r.status === 'Devis/Offre envoyé' || isWon(r) || isLost(r)).length;
+  const reached = rows.filter(r => r.status === 'Devis/Offre envoyé' || r.status === 'En attente/à relancer' || isWon(r) || isLost(r)).length;
   const won = rows.filter(isWon).length;
   const stages = [
     { label: 'Toutes les opportunités', n: total,      color: '#dbe6ff' },
@@ -1719,7 +1745,7 @@ function renderStatus(rows) {
   orderedStatuses(Object.keys(counts)).forEach(st => {
     if (!counts[st]) return;
     const pct = (counts[st] / max) * 100;
-    const color = STATUS_COLOR[st] || '#dcdce1';
+    const color = statusFill(st);
     const isActive = statusFilterSet.includes(st);
     const row = document.createElement('div');
     row.className = 'status-row' + (isActive ? ' active' : '');
@@ -1779,7 +1805,7 @@ function renderChart(rows) {
   const common = {
     responsive: true, maintainAspectRatio: false,
     plugins: {
-      legend: { display: chartMode === 'closing', position: 'bottom', labels: { boxWidth: 8, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } } },
+      legend: { display: chartMode === 'closing', position: 'bottom', labels: { boxWidth: 6, usePointStyle: true, pointStyle: 'circle', boxHeight: 6, font: { size: 11 } } },
       tooltip: { callbacks: { label: (c) => chartMode === 'closing' ? `${c.dataset.label}: ${c.parsed.y}` : `${c.dataset.label || 'Montant'}: ${fmtEUR(c.parsed.y)}` } }
     },
     scales: {
@@ -1935,7 +1961,7 @@ function renderTable(rows) {
   sorted.forEach(r => {
     const tr = document.createElement('tr');
     tr.className = 'opp-row';
-    const cls = STATUS_CLASS[r.status] || '';
+    const sbc = statusBadge(r.status);
     const initialsHtml = r.userId != null
       ? `<span class="avatar" style="background:${avatarColor(r.userId)}; width:22px; height:22px; font-size:10px;">${initials(r.userFirst, r.userLast)}</span>`
       : '';
@@ -1945,7 +1971,7 @@ function renderTable(rows) {
       <td><div class="admin-cell">${initialsHtml}<span>${escapeHTML(r.userName)}</span></div></td>
       <td class="num">${r.amount > 0 ? fmtEUR(r.amount) : '<span class="muted">—</span>'}</td>
       <td class="num">${r.percentage}%</td>
-      <td><span class="badge ${cls}">${escapeHTML(r.status)}</span></td>
+      <td><span class="badge" style="background:${sbc.bg}; color:${sbc.fg};">${escapeHTML(r.status)}</span></td>
       <td class="muted">${escapeHTML(r.followUp || '—')}</td>
     `;
     body.appendChild(tr);
@@ -1974,7 +2000,7 @@ function populateStatusFilter() {
     const list = orderedStatuses([...known]);
     box.innerHTML = list.map(s =>
       `<span class="ftag${statusFilterSet.includes(s) ? ' active' : ''}" data-st="${escapeHTML(s)}">
-        <span class="ftag-dot" style="background:${STATUS_COLOR[s] || '#dcdce1'}"></span>${escapeHTML(s)}
+        <span class="ftag-dot" style="background:${statusFill(s)}"></span>${escapeHTML(s)}
       </span>`).join('');
   }
 }
