@@ -1136,6 +1136,19 @@
             <div id="usersList" class="muted" style="font-size:12.5px;">Chargement…</div>
           </div>
         </div>
+
+        <div class="acc">
+          <button class="acc-head" type="button"><span>5. Réinitialiser les données d'un client</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="acc-body">
+            <p class="muted" style="font-size:12px; margin:0 0 10px;">Supprime <strong>toutes</strong> les opportunités importées pour le client choisi (utile si des données ont été envoyées au mauvais client). Action irréversible.</p>
+            <div class="field">
+              <label>Client</label>
+              <select id="resetDataClient" class="input"></select>
+            </div>
+            <div id="resetDataAlert"></div>
+            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="resetDataBtn" type="button" style="background:#a02323;">Supprimer les données</button></div>
+          </div>
+        </div>
       </div>
       <!-- User tab -->
       <div class="atab-pane" data-pane="user" style="display:none">
@@ -1233,6 +1246,21 @@ const STATUS_ORDER = [
   "Gagné",
   "Perdu",
 ];
+// Rang kanban : place chaque statut dans l'ordre du pipeline. Les statuts
+// inconnus (présents dans la base mais non listés) prennent un rang médian.
+const STATUS_RANK = {
+  "Nouveau": 1,
+  "En attente": 2, "En attente/à relancer": 2, "À relancer": 2,
+  "Rendez-vous prévu": 3, "Rendez-vous": 3, "RDV": 3,
+  "Devis/Offre envoyé": 4, "Devis": 4, "Offre envoyée": 4, "Devis envoyé": 4,
+  "Gagné": 8, "Gagnée": 8,
+  "Perdu": 9, "Perdue": 9, "Refusé": 9,
+};
+function statusRank(s) { return STATUS_RANK[s] != null ? STATUS_RANK[s] : 6; }
+function orderedStatuses(list) {
+  return Array.from(new Set((list || []).filter(Boolean)))
+    .sort((a, b) => (statusRank(a) - statusRank(b)) || a.localeCompare(b, 'fr'));
+}
 const AVATAR_PALETTE = ["#fde0e9","#d6f1dc","#fff0c2","#ffd9da","#d8eff3","#e0e4ff","#f4e0ff","#d9efe9"];
 const MONTHS_FR = ["Jan","Fév","Mar","Avr","Mai","Juin","Juil","Aoû","Sep","Oct","Nov","Déc"];
 function parseDateFR(s) {
@@ -1614,7 +1642,7 @@ function renderStatus(rows) {
   const max = Math.max(1, ...Object.values(counts));
   const container = document.getElementById('statusRows');
   container.innerHTML = '';
-  STATUS_ORDER.forEach(st => {
+  orderedStatuses(Object.keys(counts)).forEach(st => {
     if (!counts[st]) return;
     const pct = (counts[st] / max) * 100;
     const color = STATUS_COLOR[st] || '#dcdce1';
@@ -1860,7 +1888,7 @@ function populateStatusFilter() {
   statusFilterSet = statusFilterSet.filter(s => known.has(s));
   const box = document.getElementById('statusTags');
   if (box) {
-    const list = STATUS_ORDER.filter(s => known.has(s));
+    const list = orderedStatuses([...known]);
     box.innerHTML = list.map(s =>
       `<span class="ftag${statusFilterSet.includes(s) ? ' active' : ''}" data-st="${escapeHTML(s)}">
         <span class="ftag-dot" style="background:${STATUS_COLOR[s] || '#dcdce1'}"></span>${escapeHTML(s)}
@@ -2367,6 +2395,26 @@ document.addEventListener('click', async (e) => {
 
 const usersRefreshBtn = document.getElementById('usersRefresh');
 if (usersRefreshBtn) usersRefreshBtn.addEventListener('click', renderUsersList);
+
+// Réinitialiser les données d'un client (suppression des opportunités)
+const resetDataBtn = document.getElementById('resetDataBtn');
+if (resetDataBtn) resetDataBtn.addEventListener('click', () => {
+  const id = document.getElementById('resetDataClient').value;
+  const box = document.getElementById('resetDataAlert');
+  if (!id) { box.innerHTML = '<div class="alert error">Sélectionnez un client.</div>'; return; }
+  const name = (adminClients.find(c => c.id === id) || {}).name || 'ce client';
+  box.innerHTML = `<div class="alert error">Supprimer définitivement toutes les opportunités de « ${escapeHTML(name)} » ? <button class="btn" id="resetDataConfirm" type="button" style="background:#a02323; margin-left:8px; padding:4px 10px; font-size:12px;">Confirmer</button></div>`;
+});
+document.addEventListener('click', async (e) => {
+  if (!e.target || e.target.id !== 'resetDataConfirm') return;
+  const id = document.getElementById('resetDataClient').value;
+  const box = document.getElementById('resetDataAlert');
+  e.target.disabled = true;
+  const { error } = await sb.from('opportunities').delete().eq('client_id', id);
+  if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
+  box.innerHTML = '<div class="alert success">Données supprimées pour ce client.</div>';
+  if (currentProfile && currentProfile.role === 'admin' && adminViewClientIds.includes(id)) await loadAdminView();
+});
 /* ======================== Branding ========================
    - Client (top-left)  : logo + nom
    - Utilisateur (bot.) : photo + nom
@@ -2622,6 +2670,8 @@ function populateAdminClientSelect() {
   // Sélecteurs de l'onglet "Comptes & clients"
   const us = document.getElementById('newUserClient');
   if (us) us.innerHTML = options;
+  const rd = document.getElementById('resetDataClient');
+  if (rd) rd.innerHTML = options;
   const es = document.getElementById('editClientSelect');
   if (es) {
     const keep = es.value;
