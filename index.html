@@ -1385,37 +1385,39 @@ function renderFunnel(rows) {
   const el = document.getElementById('funnelWrap');
   if (!el) return;
   const total = rows.length;
+  if (!total) { el.innerHTML = '<div class="empty">Aucune opportunité.</div>'; return; }
   const isWon = r => r.status === 'Gagné', isLost = r => r.status === 'Perdu';
   const reached = rows.filter(r => r.status === 'Devis/Offre envoyé' || isWon(r) || isLost(r)).length;
   const won = rows.filter(isWon).length;
   const stages = [
-    { label: 'Toutes',         n: total,   color: '#cfe0ff' },
-    { label: 'Devis envoyés',  n: reached, color: '#9db8ef' },
-    { label: 'Gagnées',        n: won,     color: '#5fc2a0' },
+    { label: 'Opportunités',   n: total,   color: '#aecbff' },
+    { label: 'Devis envoyés',  n: reached, color: '#7aa7e6' },
+    { label: 'Gagnées',        n: won,     color: '#46bf99' },
   ];
-  const W = 340, bandH = 78, padTop = 8, padBot = 18;
-  const H = padTop + bandH * stages.length + padBot;
+  const W = 360, bandH = 62, gap = 30, padTop = 6, padBot = 6;
+  const H = padTop + bandH * stages.length + gap * (stages.length - 1) + padBot;
   const cx = W / 2;
   const maxN = Math.max(1, total);
-  const halfW = n => Math.max(20, (n / maxN) * (W * 0.45)); // demi-largeur (min pour lisibilité)
-  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:400px; display:block; margin:8px auto 0;" font-family="inherit">`;
+  const halfW = n => Math.max(26, (n / maxN) * (W * 0.46)); // demi-largeur (min pour lisibilité)
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:420px; display:block; margin:10px auto 0;" font-family="inherit">`;
   stages.forEach((st, i) => {
     const topHalf = halfW(st.n);
-    const botHalf = halfW(i < stages.length - 1 ? stages[i + 1].n : st.n * 0.72);
-    const y0 = padTop + i * bandH;
-    const y1 = y0 + bandH - 6;
-    const midY = y0 + (bandH - 6) / 2;
+    const botHalf = halfW(i < stages.length - 1 ? stages[i + 1].n : st.n * 0.62);
+    const y0 = padTop + i * (bandH + gap);
+    const y1 = y0 + bandH;
+    const midY = y0 + bandH / 2;
+    const pct = Math.round((st.n / total) * 100);
     svg += `<path d="M${cx - topHalf},${y0} L${cx + topHalf},${y0} L${cx + botHalf},${y1} L${cx - botHalf},${y1} Z" fill="${st.color}"/>`;
-    svg += `<text x="${cx}" y="${midY - 3}" text-anchor="middle" font-size="13" font-weight="600" fill="#13323a">${escapeHTML(st.label)}</text>`;
-    svg += `<text x="${cx}" y="${midY + 14}" text-anchor="middle" font-size="14" font-weight="700" fill="#13323a">${st.n}</text>`;
+    svg += `<text x="${cx}" y="${midY - 4}" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0f2e35">${escapeHTML(st.label)}</text>`;
+    svg += `<text x="${cx}" y="${midY + 13}" text-anchor="middle" font-size="13.5" fill="#0f2e35"><tspan font-weight="700">${st.n}</tspan><tspan fill="#2b4a52" font-size="11"> · ${pct}%</tspan></text>`;
+    // Taux de conversion vers l'étape suivante, centré dans l'espace
     if (i < stages.length - 1) {
       const conv = st.n ? Math.round((stages[i + 1].n / st.n) * 100) : 0;
-      svg += `<text x="${cx + botHalf + 8}" y="${y1 + 4}" text-anchor="start" font-size="11" fill="#6b6b75">${conv}%</text>`;
+      const gy = y1 + gap / 2;
+      svg += `<text x="${cx}" y="${gy - 3}" text-anchor="middle" font-size="11" fill="#9aa0aa">▼</text>`;
+      svg += `<text x="${cx}" y="${gy + 9}" text-anchor="middle" font-size="11.5" fill="#6b6b75"><tspan font-weight="700" fill="#13323a">${conv}%</tspan> convertis</text>`;
     }
   });
-  // Taux global en bas
-  const overall = total ? Math.round((won / total) * 100) : 0;
-  svg += `<text x="${cx}" y="${H - 4}" text-anchor="middle" font-size="11.5" fill="#6b6b75">Conversion globale : <tspan font-weight="700" fill="#13323a">${overall}%</tspan></text>`;
   svg += `</svg>`;
   el.innerHTML = svg;
 }
