@@ -1327,7 +1327,19 @@ const STATUS_RANK = {
   "Gagné": 8, "Gagnée": 8,
   "Perdu": 9, "Perdue": 9, "Refusé": 9,
 };
-function statusRank(s) { return STATUS_RANK[s] != null ? STATUS_RANK[s] : 6; }
+function statusRank(s) {
+  if (STATUS_RANK[s] != null) return STATUS_RANK[s];
+  const low = (s || '').toLowerCase();
+  if (low.includes('gagn')) return 8;
+  if (low.includes('perd') || low.includes('refus') || low.includes('annul')) return 9;
+  if (low.includes('relance')) return 4.6;                 // relance après devis
+  if (low.includes('prépar') || low.includes('prepar') || low.includes('traitement') || low.includes('analyse') || low.includes('qualif') || low.includes('étude') || low.includes('etude')) return 3.5; // avant devis
+  if (low.includes('devis') || low.includes('offre')) return 4;
+  if (low.includes('attente')) return 2;
+  if (low.includes('rendez') || low.includes('rdv') || low.includes('rencontre')) return 3;
+  if (low.includes('nouveau') || low.includes('nouvelle')) return 1;
+  return 6;
+}
 function orderedStatuses(list) {
   return Array.from(new Set((list || []).filter(Boolean)))
     .sort((a, b) => (statusRank(a) - statusRank(b)) || a.localeCompare(b, 'fr'));
@@ -1365,10 +1377,9 @@ const ALL_VIEWS = [
   { key: 'created', label: 'Pipeline créé', fixed: true },
   { key: 'won', label: 'CA gagné', fixed: true },
   { key: 'closing', label: 'Closing par mois' },
-  { key: 'source', label: 'Par source' },
   { key: 'commercial', label: 'Par commercial' },
 ];
-let chartViews = ['created', 'won', 'closing', 'source', 'commercial'];
+let chartViews = ['created', 'won', 'closing', 'commercial'];
 let selectedUserId = null;
 let adminAuthed = false;
 // Filtres (les menus déroulants ont été retirés ; le filtrage par statut
@@ -1807,6 +1818,12 @@ function monthlyAmount(rows, dateOf, filterFn) {
   rows.forEach(r => { if (filterFn && !filterFn(r)) return; const d = dateOf(r); if (!d || d.getFullYear() !== year) return; arr[d.getMonth()] += r.amount; });
   return arr;
 }
+function monthlyCount(rows, dateOf, filterFn) {
+  const year = new Date().getFullYear();
+  const arr = Array(12).fill(0);
+  rows.forEach(r => { if (filterFn && !filterFn(r)) return; const d = dateOf(r); if (!d || d.getFullYear() !== year) return; arr[d.getMonth()]++; });
+  return arr;
+}
 function renderChart(rows) {
   const ctx = document.getElementById('pipelineChart').getContext('2d');
   if (chartInstance) chartInstance.destroy();
@@ -1824,8 +1841,8 @@ function renderChart(rows) {
   const common = {
     responsive: true, maintainAspectRatio: false,
     plugins: {
-      legend: { display: chartMode === 'closing', position: 'bottom', labels: { boxWidth: 6, usePointStyle: true, pointStyle: 'circle', boxHeight: 6, font: { size: 11 } } },
-      tooltip: { callbacks: { label: (c) => chartMode === 'closing' ? `${c.dataset.label}: ${c.parsed.y}` : `${c.dataset.label || 'Montant'}: ${fmtEUR(c.parsed.y)}` } }
+      legend: { display: true, position: 'bottom', labels: { boxWidth: 6, usePointStyle: true, pointStyle: 'circle', boxHeight: 6, font: { size: 11 } } },
+      tooltip: { callbacks: { label: (c) => (chartMode === 'closing' || c.dataset.yAxisID === 'y1') ? `${c.dataset.label}: ${c.parsed.y}` : `${c.dataset.label || 'Montant'}: ${fmtEUR(c.parsed.y)}` } }
     },
     scales: {
       x: { grid: { display: false }, ticks: { color: '#8a8a93', font: { size: 11 } } },
@@ -1835,15 +1852,22 @@ function renderChart(rows) {
       } }
     }
   };
+  const dualOpts = () => ({ ...common, scales: { x: common.scales.x, y: { ...common.scales.y }, y1: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: '#8a8a93', font: { size: 11 }, precision: 0 } } } });
   if (chartMode === 'created' || chartMode === 'won') {
     const isWonView = chartMode === 'won';
-    const data = monthlyAmount(rows, isWonView ? (r => parseDateFR(r.followUp)) : (r => parseDateFR(r.createdAt)), isWonView ? (r => r.status === 'Gagné') : null);
+    const dateOf = isWonView ? (r => parseDateFR(r.followUp)) : (r => parseDateFR(r.createdAt));
+    const filt = isWonView ? (r => r.status === 'Gagné') : null;
+    const amount = monthlyAmount(rows, dateOf, filt);
+    const count = monthlyCount(rows, dateOf, filt);
     const col = isWonView ? '#1f9c52' : '#5b6cff';
-    const bg = isWonView ? 'rgba(31,156,82,0.10)' : 'rgba(91,108,255,0.08)';
+    const barCol = isWonView ? 'rgba(31,156,82,0.22)' : 'rgba(91,108,255,0.20)';
     chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: { labels: MONTHS_FR, datasets: [{ label: isWonView ? 'CA gagné' : 'Pipeline créé', data, borderColor: col, backgroundColor: bg, fill: true, tension: 0.35, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#fff', pointBorderColor: col, pointBorderWidth: 2 }] },
-      options: common
+      type: 'bar',
+      data: { labels: MONTHS_FR, datasets: [
+        { type: 'bar', label: 'Nombre', data: count, backgroundColor: barCol, borderRadius: 4, yAxisID: 'y1', order: 2 },
+        { type: 'line', label: 'Montant', data: amount, borderColor: col, backgroundColor: 'transparent', fill: false, tension: 0.35, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#fff', pointBorderColor: col, pointBorderWidth: 2, yAxisID: 'y', order: 1 },
+      ] },
+      options: dualOpts()
     });
   } else if (chartMode === 'closing') {
     const { created, won, lost } = buildClosingData(rows);
@@ -1854,12 +1878,18 @@ function renderChart(rows) {
     ];
     chartInstance = new Chart(ctx, { type: 'bar', data: { labels: MONTHS_FR, datasets }, options: common });
   } else {
-    const keyFn = chartMode === 'source' ? (r => r.source || 'Non renseignée') : (r => r.userId == null ? null : r.userName);
+    // Par commercial : montant + nombre, couleurs atténuées
     const map = {};
-    rows.forEach(r => { const k = keyFn(r); if (k == null) return; map[k] = (map[k] || 0) + r.amount; });
-    const entries = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 10);
-    const palette = ['#5b6cff','#4ac1c6','#ffb547','#7fd4a0','#f6a8a8','#b6c2f6','#9bd0d6','#c9a0ff','#ffd98a','#9bd7af'];
-    chartInstance = new Chart(ctx, { type: 'bar', data: { labels: entries.map(e => e[0]), datasets: [{ label: 'Montant', data: entries.map(e => e[1]), backgroundColor: entries.map((_, i) => palette[i % palette.length]), borderRadius: 4 }] }, options: common });
+    rows.forEach(r => { if (r.userId == null) return; const k = r.userName; if (!map[k]) map[k] = { amt: 0, cnt: 0 }; map[k].amt += r.amount; map[k].cnt++; });
+    const entries = Object.entries(map).sort((a, b) => b[1].amt - a[1].amt).slice(0, 10);
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: { labels: entries.map(e => e[0]), datasets: [
+        { label: 'Montant', data: entries.map(e => e[1].amt), backgroundColor: 'rgba(91,108,255,0.35)', borderRadius: 4, yAxisID: 'y', order: 2 },
+        { label: 'Nombre',  data: entries.map(e => e[1].cnt), backgroundColor: 'rgba(74,193,198,0.40)', borderRadius: 4, yAxisID: 'y1', order: 2 },
+      ] },
+      options: dualOpts()
+    });
   }
 }
 /* ======================== Table ======================== */
