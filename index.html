@@ -183,24 +183,35 @@
   }
   .reset-btn:hover { color: var(--text); }
   .commercial-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* Série de filtres */
+  .filter-bar { display: flex; flex-wrap: wrap; gap: 16px 20px; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .filter-group { display: flex; align-items: center; gap: 8px; }
+  .filter-label { font-size: 12px; color: var(--text-faint); }
+  .seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; }
+  .seg button { border: none; background: #fff; padding: 6px 11px; font-size: 12.5px; color: var(--text-muted); cursor: pointer; border-right: 1px solid var(--border); }
+  .seg button:last-child { border-right: none; }
+  .seg button:hover { background: #f5f6f8; }
+  .seg button.active { background: #1a1a1f; color: #fff; }
+  #statusSelect { padding-top: 7px; padding-bottom: 7px; font-size: 12.5px; }
   .chip {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 5px 12px 5px 5px;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px 3px 3px;
     border: 1px solid var(--border-strong);
     border-radius: 999px;
     background: #fff;
     cursor: pointer; user-select: none;
-    font-size: 13px; font-weight: 500;
+    font-size: 12px; font-weight: 500;
     transition: background 0.12s, color 0.12s, border-color 0.12s;
   }
   .chip:hover { background: #f7f7fa; }
   .chip.active { background: #111; color: #fff; border-color: #111; }
   .chip.active .avatar { box-shadow: 0 0 0 2px #111; }
   .avatar {
-    width: 26px; height: 26px;
+    width: 22px; height: 22px;
     border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 600; color: #1a1a1f;
+    font-size: 10px; font-weight: 600; color: #1a1a1f;
     text-transform: uppercase;
     flex-shrink: 0;
   }
@@ -422,9 +433,9 @@
   .pill.critical .pill-icon { background: #d04545; }
   .pill.success  { background: #d9f5e3; color: #156b39; border-color: #b5e6c5; cursor: default; }
   .pill.success  .pill-icon { background: #1f9c52; }
-  /* Alertes neutres (sans couleur) */
+  /* Alertes neutres (blanches) */
   .pill.info, .pill.warn, .pill.critical, .pill.success {
-    background: #f1f2f5; color: var(--text-muted); border-color: var(--border-strong);
+    background: #fff; color: var(--text-muted); border-color: var(--border-strong);
   }
   .pill.info .pill-icon, .pill.warn .pill-icon, .pill.critical .pill-icon, .pill.success .pill-icon {
     background: #b6bac2;
@@ -705,19 +716,46 @@
           <div class="subtitle" id="subtitle">Suivi du pipeline commercial de toute l'équipe.</div>
         </div>
       </div>
-      <!-- Filtrer par commercial -->
+      <!-- Filtres -->
       <div class="card commercial-card">
         <div class="commercial-head">
           <div>
-            <div class="commercial-title">Filtrer par commercial</div>
-            <div class="commercial-sub">Cliquez sur un profil pour voir uniquement ses opportunités</div>
+            <div class="commercial-title">Filtres</div>
+            <div class="commercial-sub">Commercial, période, montant, statut — cliquez pour affiner</div>
           </div>
           <button class="reset-btn" id="resetBtn">Réinitialiser</button>
         </div>
         <div class="commercial-row" id="commercialRow"></div>
+
+        <!-- Série de filtres -->
+        <div class="filter-bar">
+          <div class="filter-group">
+            <span class="filter-label">Période</span>
+            <div class="seg" id="periodSeg">
+              <button type="button" data-p="0" class="active">Tout</button>
+              <button type="button" data-p="12">12 m</button>
+              <button type="button" data-p="6">6 m</button>
+              <button type="button" data-p="3">3 m</button>
+              <button type="button" data-p="1">1 m</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Montant</span>
+            <div class="seg" id="amountSeg">
+              <button type="button" data-a="all" class="active">Tous</button>
+              <button type="button" data-a="with">Avec</button>
+              <button type="button" data-a="without">Sans</button>
+            </div>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Statut</span>
+            <select id="statusSelect" class="select"></select>
+          </div>
+        </div>
+
+        <!-- Alertes (tags) -->
+        <div class="alerts-row" id="alertsRow" style="margin-top:14px; margin-bottom:0;"></div>
       </div>
-      <!-- Alerts row -->
-      <div class="alerts-row" id="alertsRow"></div>
       <!-- KPI : onglets -->
       <div class="kpi-tabs" id="kpiTabs">
         <span class="kpi-tab active" data-kt="pipeline">Pipeline</span>
@@ -1121,6 +1159,7 @@ let adminAuthed = false;
 // se fait par clic sur les barres de statut). 0 mois = toute la période.
 let statusFilterValue = 'all';
 let periodFilterValue = 0;
+let amountFilter = 'all';   // all | with | without
 let activeAlertKey = null;
 /* ======================== Normalize input ======================== */
 function normalizeFromJSON(data) {
@@ -1184,6 +1223,8 @@ function applyFilters(rows, opts = {}) {
     const status = statusFilterValue;
     if (status !== 'all') r = r.filter(x => x.status === status);
   }
+  if (amountFilter === 'with') r = r.filter(x => x.amount > 0);
+  else if (amountFilter === 'without') r = r.filter(x => x.amount === 0);
   if (months > 0) {
     const now = new Date();
     const cutoff = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
@@ -1385,41 +1426,29 @@ function renderFunnel(rows) {
   const el = document.getElementById('funnelWrap');
   if (!el) return;
   const total = rows.length;
-  if (!total) { el.innerHTML = '<div class="empty">Aucune opportunité.</div>'; return; }
   const isWon = r => r.status === 'Gagné', isLost = r => r.status === 'Perdu';
   const reached = rows.filter(r => r.status === 'Devis/Offre envoyé' || isWon(r) || isLost(r)).length;
   const won = rows.filter(isWon).length;
   const stages = [
-    { label: 'Opportunités',   n: total,   color: '#aecbff' },
-    { label: 'Devis envoyés',  n: reached, color: '#7aa7e6' },
-    { label: 'Gagnées',        n: won,     color: '#46bf99' },
+    { label: 'Toutes les opportunités', n: total,   color: '#d6e2ff' },
+    { label: 'Devis envoyés',           n: reached, color: '#b6c2f6' },
+    { label: 'Gagnées',                 n: won,     color: '#7fd4a0' },
   ];
-  const W = 360, bandH = 62, gap = 30, padTop = 6, padBot = 6;
-  const H = padTop + bandH * stages.length + gap * (stages.length - 1) + padBot;
-  const cx = W / 2;
-  const maxN = Math.max(1, total);
-  const halfW = n => Math.max(26, (n / maxN) * (W * 0.46)); // demi-largeur (min pour lisibilité)
-  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:420px; display:block; margin:10px auto 0;" font-family="inherit">`;
+  const max = Math.max(1, total);
+  let html = '';
   stages.forEach((st, i) => {
-    const topHalf = halfW(st.n);
-    const botHalf = halfW(i < stages.length - 1 ? stages[i + 1].n : st.n * 0.62);
-    const y0 = padTop + i * (bandH + gap);
-    const y1 = y0 + bandH;
-    const midY = y0 + bandH / 2;
-    const pct = Math.round((st.n / total) * 100);
-    svg += `<path d="M${cx - topHalf},${y0} L${cx + topHalf},${y0} L${cx + botHalf},${y1} L${cx - botHalf},${y1} Z" fill="${st.color}"/>`;
-    svg += `<text x="${cx}" y="${midY - 4}" text-anchor="middle" font-size="12.5" font-weight="600" fill="#0f2e35">${escapeHTML(st.label)}</text>`;
-    svg += `<text x="${cx}" y="${midY + 13}" text-anchor="middle" font-size="13.5" fill="#0f2e35"><tspan font-weight="700">${st.n}</tspan><tspan fill="#2b4a52" font-size="11"> · ${pct}%</tspan></text>`;
-    // Taux de conversion vers l'étape suivante, centré dans l'espace
+    const w = Math.max(14, (st.n / max) * 100);
+    html += `<div class="funnel-step">
+      <div class="funnel-bar" style="width:${w}%; background:${st.color};">
+        <span>${st.label}</span><span class="f-sub">${st.n}</span>
+      </div>`;
     if (i < stages.length - 1) {
       const conv = st.n ? Math.round((stages[i + 1].n / st.n) * 100) : 0;
-      const gy = y1 + gap / 2;
-      svg += `<text x="${cx}" y="${gy - 3}" text-anchor="middle" font-size="11" fill="#9aa0aa">▼</text>`;
-      svg += `<text x="${cx}" y="${gy + 9}" text-anchor="middle" font-size="11.5" fill="#6b6b75"><tspan font-weight="700" fill="#13323a">${conv}%</tspan> convertis</text>`;
+      html += `<div class="funnel-conv">↳ <strong>${conv}%</strong> vers « ${stages[i + 1].label} »</div>`;
     }
+    html += `</div>`;
   });
-  svg += `</svg>`;
-  el.innerHTML = svg;
+  el.innerHTML = html;
 }
 
 /* ======================== Classement commerciaux ======================== */
@@ -1689,12 +1718,24 @@ function renderTable(rows) {
 }
 /* ======================== Wiring ======================== */
 function populateStatusFilter() {
-  // Menu déroulant retiré : on s'assure simplement que le statut sélectionné
-  // reste valide pour les données chargées.
   const known = new Set(rawRows.map(r => r.status).filter(Boolean));
   if (statusFilterValue !== 'all' && !known.has(statusFilterValue)) {
     statusFilterValue = 'all';
   }
+  const sel = document.getElementById('statusSelect');
+  if (sel) {
+    sel.innerHTML = '<option value="all">Tous les statuts</option>' +
+      STATUS_ORDER.filter(s => known.has(s)).map(s => `<option value="${s}">${escapeHTML(s)}</option>`).join('');
+    sel.value = statusFilterValue;
+  }
+}
+
+// Synchronise l'affichage des contrôles de filtres avec l'état courant
+function syncFilterControls() {
+  document.querySelectorAll('#periodSeg button').forEach(b => b.classList.toggle('active', parseInt(b.dataset.p) === periodFilterValue));
+  document.querySelectorAll('#amountSeg button').forEach(b => b.classList.toggle('active', b.dataset.a === amountFilter));
+  const sel = document.getElementById('statusSelect');
+  if (sel) sel.value = statusFilterValue;
 }
 function refresh() {
   const filtered = applyFilters(rawRows);
@@ -1708,6 +1749,7 @@ function refresh() {
   renderLeaderboard(rawRows);   // classement : tous les commerciaux, indépendant du filtre commercial
   renderChart(finalRows);
   renderTable(finalRows);
+  syncFilterControls();
 }
 function loadData(rows) {
   rawRows = rows;
@@ -1722,8 +1764,33 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   activeAlertKey = null;
   statusFilterValue = 'all';
   periodFilterValue = 0;
+  amountFilter = 'all';
   renderCommercials();
   updateSubtitle();
+  syncFilterControls();
+  refresh();
+});
+
+// Filtre Période
+const periodSeg = document.getElementById('periodSeg');
+if (periodSeg) periodSeg.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  periodFilterValue = parseInt(b.dataset.p);
+  syncFilterControls();
+  refresh();
+});
+// Filtre Montant
+const amountSeg = document.getElementById('amountSeg');
+if (amountSeg) amountSeg.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  amountFilter = b.dataset.a;
+  syncFilterControls();
+  refresh();
+});
+// Filtre Statut (menu)
+const statusSelectEl = document.getElementById('statusSelect');
+if (statusSelectEl) statusSelectEl.addEventListener('change', () => {
+  statusFilterValue = statusSelectEl.value;
   refresh();
 });
 document.querySelectorAll('.tab').forEach(t => {
