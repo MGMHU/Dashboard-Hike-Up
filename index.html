@@ -537,6 +537,17 @@
     color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
   }
   .tab-bar .t.active { color: var(--text); border-bottom-color: var(--text); font-weight: 600; }
+
+  .acc { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .acc-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; background: #fff; border: none; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text); font-family: inherit; }
+  .acc-head:hover { background: #fafafb; }
+  .acc-chev { color: var(--text-muted); transition: transform 0.18s; flex-shrink: 0; }
+  .acc.open .acc-chev { transform: rotate(180deg); }
+  .acc-body { padding: 2px 14px 14px; display: none; }
+  .acc.open .acc-body { display: block; }
+
+  select.input { appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b75' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; cursor: pointer; }
+  select.input:hover { background-color: #fafafb; border-color: var(--border-strong); }
   .alert {
     border-radius: 10px; padding: 10px 12px;
     font-size: 12.5px; margin-top: 10px;
@@ -991,7 +1002,7 @@
         <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Client cible pour l'import des données</label>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <select id="adminClientSelect" class="input"
-            style="flex:1; min-width:180px; padding:8px 10px; border:1px solid var(--border-strong); border-radius:8px; font-size:13.5px;"></select>
+            style="flex:1; min-width:180px; padding:8px 30px 8px 10px; border:1px solid var(--border-strong); border-radius:8px; font-size:13.5px;"></select>
           <label style="font-size:12.5px; display:flex; align-items:center; gap:6px; white-space:nowrap;">
             <input type="checkbox" id="adminReplace" checked> Remplacer les données existantes
           </label>
@@ -1000,7 +1011,7 @@
       <div class="tab-bar">
         <div class="t active" data-atab="file">Importer un fichier</div>
         <div class="t" data-atab="json">JSON brut</div>
-        <div class="t" data-atab="user">Utilisateur</div>
+        <div class="t" data-atab="user">Profil</div>
         <div class="t" data-atab="accounts">Comptes &amp; clients</div>
       </div>
       <!-- File tab -->
@@ -1029,107 +1040,93 @@
       </div>
       <!-- Comptes & clients tab -->
       <div class="atab-pane" data-pane="accounts" style="display:none">
-        <p style="margin:0 0 14px">Créez vos clients (entreprises) puis leurs accès de connexion. Chaque accès ne verra que les données du client choisi.</p>
-        <div style="border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:16px;">
-          <h3 style="margin:0 0 10px; font-size:14px;">1. Créer un client (entreprise)</h3>
-          <div class="field">
-            <label>Nom du client</label>
-            <input type="text" class="input" id="newClientName" placeholder="ICS-MTA" maxlength="60">
-          </div>
-          <div class="field">
-            <label>Identifiant court (slug, optionnel)</label>
-            <input type="text" class="input" id="newClientSlug" placeholder="ics-mta" maxlength="40">
-          </div>
-          <div class="field">
-            <label>Photo / logo du client (optionnel)</label>
-            <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
-              <div class="client-logo" id="newClientLogoPreview" style="width:54px; height:54px; border:1px solid var(--border-strong);"></div>
-              <label class="btn secondary">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Choisir une photo
-                <input type="file" id="newClientLogoFile" accept="image/*" style="display:none">
-              </label>
-              <button class="btn secondary" id="newClientLogoClear" type="button">Retirer</button>
-            </div>
-            <div class="muted" style="font-size:11.5px; margin-top:6px;">Depuis votre ordinateur (PNG/SVG conseillé). Ou collez une URL ci-dessous.</div>
-          </div>
-          <div class="field">
-            <label>… ou URL du logo (optionnel)</label>
-            <input type="text" class="input" id="newClientLogo" placeholder="https://…/logo.png">
-          </div>
-          <div id="newClientAlert"></div>
-          <div style="display:flex; justify-content:flex-end;">
-            <button class="btn" id="newClientCreate">Créer le client</button>
-          </div>
-        </div>
-        <div style="border:1px solid var(--border); border-radius:10px; padding:14px;">
-          <h3 style="margin:0 0 10px; font-size:14px;">2. Créer un accès de connexion</h3>
-          <div class="field">
-            <label>Client concerné</label>
-            <select id="newUserClient" class="input"></select>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <p style="margin:0 0 14px">Créez vos clients puis leurs accès de connexion. Chaque accès ne verra que les données du client choisi.</p>
+
+        <div class="acc open">
+          <button class="acc-head" type="button"><span>1. Créer un client</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="acc-body">
             <div class="field">
-              <label>Prénom</label>
-              <input type="text" class="input" id="newUserFirst" placeholder="Marie" autocomplete="off">
+              <label>Nom du client</label>
+              <input type="text" class="input" id="newClientName" placeholder="ICS-MTA" maxlength="60">
             </div>
             <div class="field">
-              <label>Nom</label>
-              <input type="text" class="input" id="newUserLast" placeholder="Dupont" autocomplete="off">
+              <label>Photo / logo du client (optionnel)</label>
+              <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
+                <div class="client-logo" id="newClientLogoPreview" style="width:54px; height:54px; border:1px solid var(--border-strong);"></div>
+                <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir une photo<input type="file" id="newClientLogoFile" accept="image/*" style="display:none"></label>
+                <button class="btn secondary" id="newClientLogoClear" type="button">Retirer</button>
+              </div>
+              <div class="muted" style="font-size:11.5px; margin-top:6px;">Depuis votre ordinateur (PNG/SVG conseillé). Ou collez une URL ci-dessous.</div>
             </div>
-          </div>
-          <div class="field">
-            <label>E-mail du client</label>
-            <input type="email" class="input" id="newUserEmail" placeholder="contact@entreprise.com" autocomplete="off">
-          </div>
-          <div class="field">
-            <label>Mot de passe initial (≥ 8 caractères)</label>
-            <input type="text" class="input" id="newUserPassword" placeholder="à communiquer au client" autocomplete="off">
-          </div>
-          <div class="muted" style="font-size:11.5px; margin-bottom:8px;">Le client pourra se connecter immédiatement avec ces identifiants (e-mail déjà confirmé).</div>
-          <div id="newUserAlert"></div>
-          <div style="display:flex; justify-content:flex-end;">
-            <button class="btn" id="newUserCreate">Créer l'accès</button>
+            <div class="field">
+              <label>… ou URL du logo (optionnel)</label>
+              <input type="text" class="input" id="newClientLogo" placeholder="https://…/logo.png">
+            </div>
+            <div id="newClientAlert"></div>
+            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="newClientCreate">Créer le client</button></div>
           </div>
         </div>
-        <div style="border:1px solid var(--border); border-radius:10px; padding:14px; margin-top:16px;">
-          <h3 style="margin:0 0 10px; font-size:14px;">3. Modifier un client existant</h3>
-          <div class="field">
-            <label>Client à modifier</label>
-            <select id="editClientSelect" class="input"></select>
-          </div>
-          <div class="field">
-            <label>Nom du client</label>
-            <input type="text" class="input" id="editClientName" maxlength="60">
-          </div>
-          <div class="field">
-            <label>Photo / logo</label>
-            <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
-              <div class="client-logo" id="editClientLogoPreview" style="width:54px; height:54px; border:1px solid var(--border-strong);"></div>
-              <label class="btn secondary">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                Choisir une photo
-                <input type="file" id="editClientLogoFile" accept="image/*" style="display:none">
-              </label>
-              <button class="btn secondary" id="editClientLogoClear" type="button">Retirer le logo</button>
+
+        <div class="acc">
+          <button class="acc-head" type="button"><span>2. Créer un accès de connexion</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="acc-body">
+            <div class="field">
+              <label>Client concerné</label>
+              <select id="newUserClient" class="input"></select>
             </div>
-            <div class="muted" style="font-size:11.5px; margin-top:6px;">Depuis votre ordinateur, ou collez une URL ci-dessous.</div>
-          </div>
-          <div class="field">
-            <label>… ou URL du logo</label>
-            <input type="text" class="input" id="editClientLogo" placeholder="https://…/logo.png">
-          </div>
-          <div id="editClientAlert"></div>
-          <div style="display:flex; justify-content:flex-end;">
-            <button class="btn" id="editClientSave">Enregistrer les modifications</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="field"><label>Prénom</label><input type="text" class="input" id="newUserFirst" placeholder="Marie" autocomplete="off"></div>
+              <div class="field"><label>Nom</label><input type="text" class="input" id="newUserLast" placeholder="Dupont" autocomplete="off"></div>
+            </div>
+            <div class="field">
+              <label>E-mail du client</label>
+              <input type="email" class="input" id="newUserEmail" placeholder="contact@entreprise.com" autocomplete="off">
+            </div>
+            <div class="field">
+              <label>Mot de passe initial (≥ 8 caractères)</label>
+              <input type="text" class="input" id="newUserPassword" placeholder="à communiquer au client" autocomplete="off">
+            </div>
+            <div class="muted" style="font-size:11.5px; margin-bottom:8px;">Le client pourra se connecter immédiatement avec ces identifiants (e-mail déjà confirmé).</div>
+            <div id="newUserAlert"></div>
+            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="newUserCreate">Créer l'accès</button></div>
           </div>
         </div>
-        <div style="border:1px solid var(--border); border-radius:10px; padding:14px; margin-top:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <h3 style="margin:0; font-size:14px;">4. Comptes existants (par client)</h3>
-            <button class="btn secondary" id="usersRefresh" type="button" style="font-size:12px; padding:6px 10px;">Rafraîchir</button>
+
+        <div class="acc">
+          <button class="acc-head" type="button"><span>3. Modifier un client existant</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="acc-body">
+            <div class="field">
+              <label>Client à modifier</label>
+              <select id="editClientSelect" class="input"></select>
+            </div>
+            <div class="field">
+              <label>Nom du client</label>
+              <input type="text" class="input" id="editClientName" maxlength="60">
+            </div>
+            <div class="field">
+              <label>Photo / logo</label>
+              <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
+                <div class="client-logo" id="editClientLogoPreview" style="width:54px; height:54px; border:1px solid var(--border-strong);"></div>
+                <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir une photo<input type="file" id="editClientLogoFile" accept="image/*" style="display:none"></label>
+                <button class="btn secondary" id="editClientLogoClear" type="button">Retirer le logo</button>
+              </div>
+              <div class="muted" style="font-size:11.5px; margin-top:6px;">Depuis votre ordinateur, ou collez une URL ci-dessous.</div>
+            </div>
+            <div class="field">
+              <label>… ou URL du logo</label>
+              <input type="text" class="input" id="editClientLogo" placeholder="https://…/logo.png">
+            </div>
+            <div id="editClientAlert"></div>
+            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="editClientSave">Enregistrer les modifications</button></div>
           </div>
-          <div id="usersList" class="muted" style="font-size:12.5px;">Chargement…</div>
+        </div>
+
+        <div class="acc">
+          <button class="acc-head" type="button"><span>4. Comptes existants</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="acc-body">
+            <div style="display:flex; justify-content:flex-end; margin-bottom:10px;"><button class="btn secondary" id="usersRefresh" type="button" style="font-size:12px; padding:6px 10px;">Rafraîchir</button></div>
+            <div id="usersList" class="muted" style="font-size:12.5px;">Chargement…</div>
+          </div>
         </div>
       </div>
       <!-- User tab -->
@@ -1968,6 +1965,9 @@ function tryPassword() {
 document.getElementById('passSubmit').addEventListener('click', tryPassword);
 document.getElementById('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryPassword(); });
 /* Admin tabs */
+document.querySelectorAll('.acc-head').forEach(h => {
+  h.addEventListener('click', () => { h.parentElement.classList.toggle('open'); });
+});
 document.querySelectorAll('.tab-bar .t').forEach(t => {
   t.addEventListener('click', () => {
     document.querySelectorAll('.tab-bar .t').forEach(x => x.classList.remove('active'));
@@ -2059,19 +2059,17 @@ const newClientBtn = document.getElementById('newClientCreate');
 if (newClientBtn) newClientBtn.addEventListener('click', async () => {
   const box = document.getElementById('newClientAlert');
   const name = document.getElementById('newClientName').value.trim();
-  const slug = document.getElementById('newClientSlug').value.trim() || null;
   // priorité à la photo importée depuis l'ordinateur, sinon l'URL
   const logo = newClientLogoData || document.getElementById('newClientLogo').value.trim() || null;
   box.innerHTML = '';
   if (!sb) { box.innerHTML = '<div class="alert error">Supabase non configuré.</div>'; return; }
   if (!name) { box.innerHTML = '<div class="alert error">Le nom du client est requis.</div>'; return; }
   const { data, error } = await sb.from('clients')
-    .insert({ name, slug, logo_url: logo }).select('id, name').single();
+    .insert({ name, logo_url: logo }).select('id, name').single();
   if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
   await refreshAdminClients();
   document.getElementById('newUserClient').value = data.id;
   document.getElementById('newClientName').value = '';
-  document.getElementById('newClientSlug').value = '';
   document.getElementById('newClientLogo').value = '';
   newClientLogoData = null;
   if (newClientLogoFile) newClientLogoFile.value = '';
