@@ -319,6 +319,9 @@
   .lb td:first-child { text-align: left; font-weight: 500; }
   .lb tr:last-child td { border-bottom: none; }
   .lb .lb-name { display: flex; align-items: center; gap: 8px; }
+  .lb th .help { font-weight: 400; }
+  .lb th .help .tip { left: auto; right: -4px; transform: none; }
+  .lb th .help .tip::after { left: auto; right: 8px; transform: none; }
   /* Table */
   .table-card { padding: 0; overflow: hidden; }
   .table-header { padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
@@ -1433,7 +1436,7 @@ function renderLeaderboard(rows) {
     const winRate = (won.length + lost.length) ? (won.length / (won.length + lost.length)) * 100 : null;
     return { u, active: active.length, devis: devis.length, caWon, winRate };
   }).sort((a, b) => b.caWon - a.caWon);
-  let html = `<table class="lb"><thead><tr><th>Commercial</th><th>Actives</th><th>Devis</th><th>CA gagné</th><th>Win %</th></tr></thead><tbody>`;
+  let html = `<table class="lb"><thead><tr><th>Commercial</th><th>Actives</th><th>Devis</th><th>CA gagné</th><th>Win&nbsp;% <span class="help">?<span class="tip">Taux de réussite : opportunités <strong>gagnées</strong> ÷ opportunités <strong>clôturées</strong> (Gagné + Perdu). Les opportunités encore ouvertes ne sont pas comptées. « — » signifie aucune opportunité clôturée.<br><code>Gagné / (Gagné + Perdu)</code></span></span></th></tr></thead><tbody>`;
   data.forEach(d => {
     html += `<tr>
       <td><div class="lb-name"><span class="avatar" style="background:${avatarColor(d.u.id)}; width:24px; height:24px; font-size:10px;">${initials(d.u.first, d.u.last)}</span>${escapeHTML(d.u.name)}</div></td>
