@@ -182,7 +182,11 @@
     color: var(--text-muted); font-size: 12.5px; padding: 4px 8px;
   }
   .reset-btn:hover { color: var(--text); }
-  .commercial-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .commercial-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .filter-toggle { background: none; border: none; cursor: pointer; color: var(--text-muted); width: 26px; height: 26px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .filter-toggle:hover { background: #f1f2f5; color: var(--text); }
+  .filter-toggle svg { width: 16px; height: 16px; transition: transform 0.18s; }
+  .filter-toggle.open svg { transform: rotate(180deg); }
 
   /* Série de filtres — tags uniformes */
   .filter-bar { display: flex; flex-direction: column; gap: 11px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
@@ -199,23 +203,23 @@
   .ftag.active { background: #1a1a1f; color: #fff; border-color: #1a1a1f; }
   .ftag .ftag-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 3px 10px 3px 3px;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 9px 2px 2px;
     border: 1px solid var(--border-strong);
     border-radius: 999px;
     background: #fff;
     cursor: pointer; user-select: none;
-    font-size: 12px; font-weight: 500;
+    font-size: 11.5px; font-weight: 500;
     transition: background 0.12s, color 0.12s, border-color 0.12s;
   }
   .chip:hover { background: #f7f7fa; }
   .chip.active { background: #111; color: #fff; border-color: #111; }
   .chip.active .avatar { box-shadow: 0 0 0 2px #111; }
   .avatar {
-    width: 22px; height: 22px;
+    width: 19px; height: 19px;
     border-radius: 50%;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 600; color: #1a1a1f;
+    font-size: 9px; font-weight: 600; color: #1a1a1f;
     text-transform: uppercase;
     flex-shrink: 0;
   }
@@ -722,12 +726,19 @@
         <div class="commercial-head">
           <div>
             <div class="commercial-title">Filtres</div>
-            <div class="commercial-sub">Commercial, période, montant, statut — cliquez pour affiner</div>
+            <div class="commercial-sub">Cliquez sur un commercial — flèche pour période, montant, statut.</div>
           </div>
-          <button class="reset-btn" id="resetBtn">Réinitialiser</button>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button class="reset-btn" id="resetBtn">Réinitialiser</button>
+            <button class="filter-toggle" id="filterToggle" type="button" aria-label="Plus de filtres" title="Plus de filtres">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
         </div>
         <div class="commercial-row" id="commercialRow"></div>
 
+        <!-- Filtres avancés (repliables) -->
+        <div id="filterAdvanced" style="display:none;">
         <!-- Série de filtres (tags) -->
         <div class="filter-bar">
           <div class="filter-group">
@@ -756,6 +767,7 @@
 
         <!-- Alertes (tags) -->
         <div class="alerts-row" id="alertsRow" style="margin-top:14px; margin-bottom:0;"></div>
+        </div><!-- /filterAdvanced -->
       </div>
       <!-- KPI -->
       <div class="kpi-section-label" style="margin-top:0;">Pipeline</div>
@@ -1771,6 +1783,16 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   updateSubtitle();
   syncFilterControls();
   refresh();
+});
+
+// Flèche : déplie / replie les filtres avancés
+const filterToggle = document.getElementById('filterToggle');
+if (filterToggle) filterToggle.addEventListener('click', () => {
+  const adv = document.getElementById('filterAdvanced');
+  if (!adv) return;
+  const open = adv.style.display === 'none';
+  adv.style.display = open ? '' : 'none';
+  filterToggle.classList.toggle('open', open);
 });
 
 // Filtre Période (tag — sélection unique)
