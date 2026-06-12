@@ -1364,7 +1364,7 @@ const ALL_VIEWS = [
   { key: 'source', label: 'Par source' },
   { key: 'commercial', label: 'Par commercial' },
 ];
-let chartViews = ['created', 'won'];
+let chartViews = ['created', 'won', 'closing', 'source', 'commercial'];
 let selectedUserId = null;
 let adminAuthed = false;
 // Filtres (les menus déroulants ont été retirés ; le filtrage par statut
@@ -1585,13 +1585,14 @@ function applyAlertFilter(rows) {
 }
 /* ======================== KPI ======================== */
 function trendArrow(cur, prev, inverse = false) {
-  if (Math.round(cur) === Math.round(prev)) return '<span style="color:var(--text-faint);" title="vs 30 jours précédents">→</span>';
+  const TIP = "Comparaison : opportunités créées ces 30 derniers jours vs les 30 jours précédents";
+  if (Math.round(cur) === Math.round(prev)) return `<span style="color:var(--text-faint); cursor:help;" title="${TIP} — stable">→</span>`;
   const up = cur > prev;
   const good = inverse ? !up : up;
   const color = good ? '#1f9c52' : '#c0392b';
   const sym = up ? '▲' : '▼';
   const pct = prev > 0 ? Math.round(Math.abs(cur - prev) / prev * 100) : 100;
-  return `<span style="color:${color}; font-weight:600;" title="vs 30 jours précédents">${sym} ${pct}%</span>`;
+  return `<span style="color:${color}; font-weight:600; cursor:help;" title="${TIP}">${sym} ${pct}%</span>`;
 }
 function renderKPIs(rows) {
   const isWon  = r => r.status === 'Gagné';
@@ -1824,7 +1825,7 @@ function renderChart(rows) {
       x: { grid: { display: false }, ticks: { color: '#8a8a93', font: { size: 11 } } },
       y: { beginAtZero: true, grid: { color: '#f1f1f4' }, ticks: {
         color: '#8a8a93', font: { size: 11 },
-        callback: v => v >= 1000 ? (v/1000) + 'k' : v
+        callback: v => v >= 1000000 ? (+(v/1000000).toFixed(1)) + 'M' : (v >= 1000 ? (+(v/1000).toFixed(0)) + 'k' : v)
       } }
     }
   };
