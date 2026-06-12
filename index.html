@@ -727,12 +727,14 @@
     .sidebar { width: 240px; }
     .sidebar-brand, .sidebar-user { display: none; }
     .sidebar-nav { padding-top: 16px; }
-    .mobile-topbar { display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 200; background: rgba(255,255,255,0.94); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 8px 10px; height: 56px; }
-    .mtb-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: transparent; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-    .mtb-btn:active { background: #eceef1; }
-    .mtb-title { flex: 1; text-align: center; font-size: 16px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .main .header { display: none; }
-    .page { padding: 12px 14px 56px; }
+    .mobile-topbar { display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 200; background: transparent; border: none; padding: 10px 12px; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; }
+    .mobile-topbar.hidden { opacity: 0; transform: translateY(-110%); }
+    .mtb-btn { pointer-events: auto; width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: #fff; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; box-shadow: var(--shadow); overflow: hidden; }
+    .mtb-btn:active { transform: scale(0.95); }
+    .mtb-title { display: none; }
+    .main .header { display: block; }
+    .header h1 { font-size: 22px; }
+    .page { padding: 58px 14px 56px; }
     .two-col { grid-template-columns: 1fr; }
     .card.commercial-card, .card.chart-card, .card.status-card, .table-card { border-radius: 16px; }
     .kpi-section-label { margin: 14px 2px 8px; }
@@ -3308,6 +3310,18 @@ function applyLoginLogo() {
 }
 
 function closeMobileNav() { const a = document.querySelector('.app'); if (a) a.classList.remove('nav-open'); }
+function initTopbarScroll() {
+  const bar = document.querySelector('.mobile-topbar');
+  if (!bar) return;
+  let lastY = window.scrollY || 0;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY || document.documentElement.scrollTop || 0;
+    if (y <= 6) bar.classList.remove('hidden');
+    else if (y > lastY + 5) bar.classList.add('hidden');
+    else if (y < lastY - 5) bar.classList.remove('hidden');
+    lastY = y;
+  }, { passive: true });
+}
 function initMobileNav() {
   const btn = document.getElementById('mobileNav');
   const bd = document.getElementById('navBackdrop');
@@ -3340,6 +3354,7 @@ async function initApp() {
   loadBranding();
   initSidebarToggle();
   initMobileNav();
+  initTopbarScroll();
   initKpiCarousels();
   applyLoginLogo();
   if (!sb) {
