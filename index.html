@@ -269,6 +269,7 @@
 
   /* Ligne de petites cartes (conversion & vélocité) */
   .kpi-grid-sm { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 8px; }
+  .kpi-dots { display: none; }
   .kpi.sm { padding: 12px 14px; }
   .kpi.sm .label { font-size: 11px; }
   .kpi.sm .value { font-size: 18px; margin-top: 4px; }
@@ -745,10 +746,13 @@
     .kpi-grid, .kpi-grid-sm {
       display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 10px;
       scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-      margin: 0 -14px; padding: 2px 14px 6px;
+      margin: 0; padding: 2px 0 8px;
     }
     .kpi-grid::-webkit-scrollbar, .kpi-grid-sm::-webkit-scrollbar { display: none; }
-    .kpi-grid > .card.kpi, .kpi-grid-sm > .card.kpi { flex: 0 0 44%; scroll-snap-align: start; }
+    .kpi-grid > .card.kpi, .kpi-grid-sm > .card.kpi { flex: 0 0 47%; scroll-snap-align: start; }
+    .kpi-dots { display: flex; justify-content: center; gap: 5px; margin: -2px 0 10px; }
+    .kpi-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong); transition: width .2s, background .2s; }
+    .kpi-dot.active { width: 18px; border-radius: 3px; background: var(--text-muted); }
     .kpi .value { font-size: 22px; }
     .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .table-card table { min-width: 600px; }
@@ -3197,10 +3201,29 @@ function initMobileNav() {
   const prof = document.getElementById('mobileProfile');
   if (prof) prof.addEventListener('click', () => { if (typeof openAdmin === 'function') openAdmin(); });
 }
+function initKpiCarousels() {
+  document.querySelectorAll('.kpi-grid, .kpi-grid-sm').forEach(grid => {
+    if (grid.nextElementSibling && grid.nextElementSibling.classList.contains('kpi-dots')) return;
+    const n = grid.children.length;
+    if (n < 2) return;
+    const dots = document.createElement('div');
+    dots.className = 'kpi-dots';
+    dots.innerHTML = Array.from({ length: n }, (_, i) => `<span class="kpi-dot${i === 0 ? ' active' : ''}"></span>`).join('');
+    grid.parentNode.insertBefore(dots, grid.nextSibling);
+    const update = () => {
+      const max = grid.scrollWidth - grid.clientWidth;
+      const frac = max > 0 ? grid.scrollLeft / max : 0;
+      const active = Math.round(frac * (n - 1));
+      dots.querySelectorAll('.kpi-dot').forEach((d, i) => d.classList.toggle('active', i === active));
+    };
+    grid.addEventListener('scroll', update, { passive: true });
+  });
+}
 async function initApp() {
   loadBranding();
   initSidebarToggle();
   initMobileNav();
+  initKpiCarousels();
   applyLoginLogo();
   if (!sb) {
     // Mode démo local : aucune config Supabase → on garde le comportement d'origine
