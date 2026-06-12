@@ -598,6 +598,59 @@
   .login-btn:hover { filter: brightness(1.06); }
   .login-btn:active { transform: translateY(1px); }
   @media (max-width: 560px) { .login-skeleton .sk-side { display: none; } }
+
+  /* ===== Login — deux colonnes (formulaire + aperçu) ===== */
+  #loginOverlay { background: #fff; }
+  .login-left { flex: 0 0 40%; min-width: 0; display: flex; flex-direction: column; padding: 38px 52px; background: #fff; }
+  .login-brand { display: flex; align-items: center; gap: 9px; }
+  .login-brand-mark { display: inline-flex; }
+  .login-brand-word { font-size: 17px; font-weight: 300; color: #46555c; letter-spacing: 0.2px; }
+  .login-brand-word strong { font-weight: 800; color: #13242b; }
+  .login-form-wrap { margin: auto; width: 100%; max-width: 320px; }
+  .login-h1 { font-size: 30px; line-height: 1.12; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--text); }
+  .login-sub2 { font-size: 14px; color: var(--text-muted); margin: 0 0 22px; }
+  .login-label2 { display: block; font-size: 12.5px; color: var(--text-muted); margin: 14px 0 6px; }
+  .login-input2 { width: 100%; border: 1px solid var(--border-strong); border-radius: 10px; padding: 12px 13px; font-size: 14px; font-family: inherit; background: #fff; color: var(--text); }
+  .login-input2::placeholder { color: var(--text-faint); }
+  .login-input2:focus { outline: none; border-color: #1a1a1f; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+  .login-continue { width: 100%; margin-top: 22px; background: #0f1115; color: #fff; border: none; border-radius: 10px; padding: 13px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.12s; }
+  .login-continue:hover { background: #000; }
+  .login-links { margin-top: 16px; font-size: 12.5px; color: var(--text-muted); }
+
+  .login-right { flex: 1; min-width: 0; background: #f4f5f7; padding: 32px 36px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+  .lr-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .lr-sub { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+  .login-preview { flex: 1; background: #fff; border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 12px 40px rgba(15,17,21,0.08); overflow: hidden; display: flex; filter: blur(1.6px); }
+  .mock-side { width: 138px; flex-shrink: 0; background: #fafbfc; border-right: 1px solid var(--border); padding: 14px 0; }
+  .mock-brand { display: flex; align-items: center; gap: 8px; padding: 0 14px 14px; }
+  .mock-logo { width: 18px; height: 18px; border-radius: 5px; background: linear-gradient(135deg, #2a8aa8, #5dc5c9); flex-shrink: 0; }
+  .mock-nav { display: flex; flex-direction: column; gap: 7px; padding: 6px 12px; }
+  .mock-main { flex: 1; min-width: 0; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .mock-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .mock-card { border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; }
+  .mock-klabel { display: block; font-size: 9.5px; color: var(--text-faint); margin-bottom: 9px; }
+  .mock-chart { height: 120px; border: 1px solid var(--border); border-radius: 10px; padding: 14px; display: flex; align-items: flex-end; gap: 7px; }
+  .mock-chart .bar { flex: 1; border-radius: 4px 4px 0 0; }
+  .mock-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .mock-row { display: grid; grid-template-columns: 2.2fr 1fr 1fr 1fr; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--border); align-items: center; }
+  .mock-row:last-child { border-bottom: none; }
+  .mock-cli-label { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); font-weight: 600; padding: 4px 14px 6px; }
+  .mock-clients { display: flex; flex-direction: column; gap: 8px; padding: 0 12px; }
+  .mock-cli-row { display: flex; align-items: center; gap: 8px; }
+  .mock-cli-dot { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+  .mock-kpis3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .mock-kpis5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .mock-card.sm { padding: 9px 10px; }
+  .mock-card.sm .mock-klabel { font-size: 8px; margin-bottom: 7px; }
+  .mock-seclabel { font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); font-weight: 600; }
+  .mock-panel { border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .mock-area { height: 120px; border-radius: 8px; background: #f3f5fc; position: relative; overflow: hidden; }
+  .mock-area::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 58%; background: rgba(91,108,255,0.08); border-top: 2px solid rgba(91,108,255,0.45); }
+  .mock-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .mock-bar { height: 22px; border-radius: 6px; margin-bottom: 7px; }
+  .mock-frow { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .mock-frow:last-child { border-bottom: none; }
+  @media (max-width: 880px) { .login-right { display: none; } .login-left { flex: 1; max-width: none; } }
   @media (max-width: 980px) {
     .sidebar { width: 64px; }
     .sidebar .brand-name, .sidebar-user .info, .nav-item span { display: none; }
@@ -616,53 +669,19 @@
 </style>
 </head>
 <body>
-<!-- ===================== Écran de connexion (Supabase) ===================== -->
-<div id="loginOverlay" style="display:none; position:fixed; inset:0; z-index:9999;
-     align-items:center; justify-content:center;">
+<!-- ===================== Écran de connexion (deux colonnes) ===================== -->
+<div id="loginOverlay" style="display:none; position:fixed; inset:0; z-index:9999;">
 
-  <!-- Dashboard en skeleton flou (décoratif) -->
-  <div class="login-skeleton" aria-hidden="true">
-    <div class="sk-side">
-      <div class="sk-block" style="height:44px;"></div>
-      <div class="sk-block" style="height:30px;"></div>
-      <div class="sk-block" style="height:30px;"></div>
-      <div class="sk-block" style="height:30px; margin-top:auto;"></div>
-    </div>
-    <div class="sk-main">
-      <div class="sk-block" style="height:54px; width:55%;"></div>
-      <div class="sk-block" style="height:60px;"></div>
-      <div class="sk-row">
-        <div class="sk-block" style="height:110px; flex:1;"></div>
-        <div class="sk-block" style="height:110px; flex:1;"></div>
-        <div class="sk-block" style="height:110px; flex:1;"></div>
-      </div>
-      <div class="sk-block" style="height:230px;"></div>
-      <div class="sk-block" style="height:180px;"></div>
-    </div>
-  </div>
-  <div class="login-scrim" aria-hidden="true"></div>
-
-  <!-- Carte de connexion -->
-  <div class="login-card">
-    <div class="login-logo">
-      <!-- Logo : remplacé par l'image envoyée si présente -->
-      <img id="loginLogoImg" src="" alt="Hike UP" style="display:none;">
-      <span id="loginLogoFallback" style="display:flex; align-items:center; gap:12px;">
-        <span class="login-mark">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 107.34 115.85" width="44" height="47">
+  <!-- Colonne gauche : formulaire -->
+  <div class="login-left">
+    <div class="login-brand">
+      <span class="login-brand-mark">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 107.34 115.85" width="26" height="28">
             <defs>
-              <linearGradient id="huG1" x1="-74.4" y1="-149.95" x2="63.39" y2="12.58" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#435d9c"/><stop offset=".24" stop-color="#4577a1"/><stop offset=".66" stop-color="#4aa2a9"/><stop offset=".88" stop-color="#4cb3ad"/>
-              </linearGradient>
-              <linearGradient id="huG2" x1="23.36" y1="75.43" x2="122.15" y2="130.65" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#00aae9"/><stop offset=".4" stop-color="#176bba"/><stop offset=".72" stop-color="#284099"/><stop offset=".88" stop-color="#2f308d"/>
-              </linearGradient>
-              <linearGradient id="huG3" x1="28.45" y1="8.49" x2="61.31" y2="19.3" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#1a8ba1"/><stop offset=".05" stop-color="#1e8da1"/><stop offset=".6" stop-color="#49aaa9"/><stop offset=".88" stop-color="#5ab6ad"/>
-              </linearGradient>
-              <linearGradient id="huG4" x1="20.54" y1="77.29" x2="21.91" y2="12.01" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse">
-                <stop offset="0" stop-color="#3974b7"/><stop offset=".94" stop-color="#4dafc5"/>
-              </linearGradient>
+              <linearGradient id="huG1" x1="-74.4" y1="-149.95" x2="63.39" y2="12.58" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#435d9c"/><stop offset=".24" stop-color="#4577a1"/><stop offset=".66" stop-color="#4aa2a9"/><stop offset=".88" stop-color="#4cb3ad"/></linearGradient>
+              <linearGradient id="huG2" x1="23.36" y1="75.43" x2="122.15" y2="130.65" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#00aae9"/><stop offset=".4" stop-color="#176bba"/><stop offset=".72" stop-color="#284099"/><stop offset=".88" stop-color="#2f308d"/></linearGradient>
+              <linearGradient id="huG3" x1="28.45" y1="8.49" x2="61.31" y2="19.3" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1a8ba1"/><stop offset=".05" stop-color="#1e8da1"/><stop offset=".6" stop-color="#49aaa9"/><stop offset=".88" stop-color="#5ab6ad"/></linearGradient>
+              <linearGradient id="huG4" x1="20.54" y1="77.29" x2="21.91" y2="12.01" gradientTransform="translate(0 113.73) scale(1 -1)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#3974b7"/><stop offset=".94" stop-color="#4dafc5"/></linearGradient>
             </defs>
             <path d="M97.55,51.06c-5.4,0-9.79,4.39-9.79,9.79s4.39,9.79,9.79,9.79,9.79-4.39,9.79-9.79-4.39-9.79-9.79-9.79Z" fill="url(#huG1)"/>
             <path d="M30.67,28.1c3.69-3.61,8.12-6.49,13.12-8.39.66-.26,1.29-.48,1.9-.66.45-.16.93-.3,1.41-.42.42-.13.79-.22,1.15-.29.25-.07.5-.13.75-.18.31-.08.63-.14.94-.2.26-.06.55-.12.87-.16.45-.08.9-.16,1.36-.21.54-.08,1.06-.15,1.58-.19.55-.06,1.15-.1,1.76-.13h.1c.62-.04,1.27-.06,2.03-.06,9.61,0,18.31,3.34,25.17,9.66,2.62,2.42,6.65,2.63,9.57.51l8.5-6.18C90.36,7.7,74.43,0,56.81,0,25.49,0,0,25.95,0,57.84c0,.56,0,1.12.03,1.66,0,.64.04,1.25.08,1.88.02.38.06.77.09,1.16,3.75-13.87,15.93-26.42,30.48-34.43h-.01Z" fill="url(#huG2)"/>
@@ -670,21 +689,68 @@
             <path d="M30.45,95.39c-1.86-4.51-3.08-8.87-3.91-12.53-.05-.07-.11-.14-.16-.21-.28-.35-.53-.72-.78-1.12-.52-.77-1.02-1.57-1.43-2.32-.17-.27-.35-.61-.53-.94-.15-.28-.31-.58-.46-.88l-.44-.9c-2.73-5.69-4.17-12.12-4.17-18.65,0-11.68,4.5-22.28,12.11-29.73-1.04.57-2.08,1.17-3.1,1.79-1.07.66-2.12,1.34-3.15,2.05-2.87,1.91-5.58,4.02-8.1,6.28-1.14,1.03-2.26,2.08-3.31,3.17-3.97,4.05-7.3,8.5-9.71,13.2-.32.62-.63,1.25-.92,1.89-.58,1.27-1.09,2.55-1.52,3.84-.25.74-.47,1.47-.67,2.21.16,1.95.42,3.93.79,5.99l.46,2.29c4.82,21.56,20.89,38.09,41.6,43.29-5.95-5.42-9.92-12.21-12.59-18.72h0Z" fill="url(#huG4)"/>
           </svg>
         </span>
-        <span class="login-word">Hike <strong>UP</strong></span>
-      </span>
+      <span class="login-brand-word">Hike <strong>UP</strong></span>
     </div>
-    <div class="login-sub">Connectez-vous pour accéder à votre tableau de bord.</div>
+    <div class="login-form-wrap">
+      <h1 class="login-h1">Connexion à<br>Hike UP</h1>
+      <p class="login-sub2">Entrez vos identifiants pour continuer.</p>
+      <label class="login-label2" for="loginEmail">Adresse e-mail</label>
+      <input type="email" class="login-input2" id="loginEmail" placeholder="vous@exemple.com" autocomplete="username">
+      <label class="login-label2" for="loginPassword">Mot de passe</label>
+      <input type="password" class="login-input2" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      <div id="loginAlert" style="margin-top:12px;"></div>
+      <button class="login-continue" id="loginSubmit">Continuer</button>
+      <div class="login-links">Mot de passe oublié&nbsp;?&nbsp;&nbsp;·&nbsp;&nbsp;Confidentialité</div>
+    </div>
+  </div>
 
-    <div class="login-field">
-      <label class="login-label" for="loginEmail">E-mail</label>
-      <input type="email" class="login-input" id="loginEmail" placeholder="vous@exemple.com" autocomplete="username">
+  <!-- Colonne droite : aperçu du rapport (skeleton + léger flou) -->
+  <div class="login-right" aria-hidden="true">
+    <div class="login-right-head">
+      <div class="lr-title">Vos tableaux de bord</div>
+      <div class="lr-sub">Des indicateurs commerciaux clairs, en temps réel.</div>
     </div>
-    <div class="login-field">
-      <label class="login-label" for="loginPassword">Mot de passe</label>
-      <input type="password" class="login-input" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+    <div class="login-preview">
+      <div class="mock-side">
+        <div class="mock-brand"><span class="mock-logo"></span><span class="sk-block" style="width:46px;height:9px;border-radius:4px;"></span></div>
+        <div class="mock-nav"><span class="sk-block" style="height:22px;border-radius:7px;"></span></div>
+        <div class="mock-cli-label">Clients</div>
+        <div class="mock-clients">
+          <div class="mock-cli-row"><span class="mock-cli-dot" style="background:#fde0e9"></span><span class="sk-block" style="height:9px;width:72%;border-radius:4px;"></span></div>
+          <div class="mock-cli-row"><span class="mock-cli-dot" style="background:#d6f1dc"></span><span class="sk-block" style="height:9px;width:58%;border-radius:4px;"></span></div>
+          <div class="mock-cli-row"><span class="mock-cli-dot" style="background:#fff0c2"></span><span class="sk-block" style="height:9px;width:64%;border-radius:4px;"></span></div>
+          <div class="mock-cli-row"><span class="mock-cli-dot" style="background:#ffd9da"></span><span class="sk-block" style="height:9px;width:50%;border-radius:4px;"></span></div>
+          <div class="mock-cli-row"><span class="mock-cli-dot" style="background:#d8eff3"></span><span class="sk-block" style="height:9px;width:68%;border-radius:4px;"></span></div>
+          <div class="mock-cli-row"><span class="mock-cli-dot" style="background:#e0e4ff"></span><span class="sk-block" style="height:9px;width:55%;border-radius:4px;"></span></div>
+          <div class="mock-cli-row"><span class="mock-cli-dot" style="background:#f4e0ff"></span><span class="sk-block" style="height:9px;width:62%;border-radius:4px;"></span></div>
+          <div class="mock-cli-row"><span class="mock-cli-dot" style="background:#d9efe9"></span><span class="sk-block" style="height:9px;width:48%;border-radius:4px;"></span></div>
+        </div>
+      </div>
+      <div class="mock-main">
+        <div class="mock-kpis3"><div class="mock-card"><span class="mock-klabel">Opportunités</span><span class="sk-block" style="width:46px;height:17px;border-radius:5px;"></span></div><div class="mock-card"><span class="mock-klabel">Nouvelles (30j)</span><span class="sk-block" style="width:40px;height:17px;border-radius:5px;"></span></div><div class="mock-card"><span class="mock-klabel">Chiffre gagné</span><span class="sk-block" style="width:66px;height:17px;border-radius:5px;"></span></div></div>
+        <div class="mock-seclabel">Conversion &amp; vélocité</div>
+        <div class="mock-kpis5"><div class="mock-card sm"><span class="mock-klabel">Taux de conversion</span><span class="sk-block" style="width:34px;height:14px;border-radius:5px;"></span></div><div class="mock-card sm"><span class="mock-klabel">Transformation</span><span class="sk-block" style="width:34px;height:14px;border-radius:5px;"></span></div><div class="mock-card sm"><span class="mock-klabel">Panier moyen</span><span class="sk-block" style="width:52px;height:14px;border-radius:5px;"></span></div><div class="mock-card sm"><span class="mock-klabel">Cycle de vente</span><span class="sk-block" style="width:30px;height:14px;border-radius:5px;"></span></div><div class="mock-card sm"><span class="mock-klabel">Âge moyen</span><span class="sk-block" style="width:30px;height:14px;border-radius:5px;"></span></div></div>
+        <div class="mock-panel">
+          <span class="sk-block" style="width:120px;height:11px;border-radius:5px;display:block;margin-bottom:12px;"></span>
+          <div class="mock-area"></div>
+        </div>
+        <div class="mock-2col">
+          <div class="mock-panel">
+            <span class="sk-block" style="width:110px;height:11px;border-radius:5px;display:block;margin-bottom:12px;"></span>
+            <div class="mock-bar" style="width:70%;background:#ffd98a"></div><div class="mock-bar" style="width:82%;background:#b6c2f6"></div><div class="mock-bar" style="width:64%;background:#9bd7af"></div><div class="mock-bar" style="width:30%;background:#9bd0d6"></div><div class="mock-bar" style="width:22%;background:#7fd4a0"></div><div class="mock-bar" style="width:46%;background:#f6a8a8"></div>
+          </div>
+          <div class="mock-panel">
+            <span class="sk-block" style="width:110px;height:11px;border-radius:5px;display:block;margin-bottom:12px;"></span>
+            <div class="mock-bar" style="width:100%;background:#dbe6ff"></div><div class="mock-bar" style="width:82%;background:#aec6f2"></div><div class="mock-bar" style="width:48%;background:#84b0e0"></div><div class="mock-bar" style="width:12%;background:#6fcfa4"></div>
+          </div>
+        </div>
+        <div class="mock-panel">
+          <span class="sk-block" style="width:140px;height:11px;border-radius:5px;display:block;margin-bottom:10px;"></span>
+          <div class="mock-frow"><span class="sk-block" style="height:10px;width:70%;border-radius:4px;"></span><span class="sk-block" style="height:10px;width:50%;border-radius:4px;"></span><span class="sk-block" style="height:10px;width:60%;border-radius:4px;"></span></div>
+          <div class="mock-frow"><span class="sk-block" style="height:10px;width:70%;border-radius:4px;"></span><span class="sk-block" style="height:10px;width:50%;border-radius:4px;"></span><span class="sk-block" style="height:10px;width:60%;border-radius:4px;"></span></div>
+        </div>
+      </div>
     </div>
-    <div id="loginAlert" style="margin-bottom:12px;"></div>
-    <button class="login-btn" id="loginSubmit">Se connecter</button>
   </div>
 </div>
 <div class="app">
@@ -726,7 +792,7 @@
       <!-- Header -->
       <div class="header">
         <div>
-          <h1>Vue d'ensemble</h1>
+          <h1 id="reportTitle">Vue d'ensemble</h1>
           <div class="subtitle" id="subtitle">Suivi du pipeline commercial de toute l'équipe.</div>
         </div>
       </div>
@@ -1276,12 +1342,17 @@ function renderCommercials() {
 }
 function updateSubtitle() {
   const sub = document.getElementById('subtitle');
-  if (selectedUserId === null) {
-    sub.textContent = "Suivi du pipeline commercial de toute l'équipe.";
-  } else {
+  if (selectedUserId !== null) {
     const u = uniqueUsers(rawRows).find(x => x.id === selectedUserId);
     sub.textContent = u ? `Opportunités de ${u.name}` : "Suivi du pipeline commercial.";
+    return;
   }
+  // Admin en vue d'ensemble (tous les clients) → mention "nos clients"
+  const isAdmin = currentProfile && currentProfile.role === 'admin';
+  const allClients = isAdmin && adminClients.length > 0 && adminViewClientIds.length === adminClients.length;
+  sub.textContent = allClients
+    ? "Suivi du pipeline commercial de nos clients"
+    : "Suivi du pipeline commercial de toute l'équipe.";
 }
 /* ======================== Alerts ======================== */
 const ICON_WARN_T = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
@@ -2399,6 +2470,7 @@ async function doLogout() {
   setStored(LS_KEYS.clientLogo, null);
   applyUserName(null);
   applyUserPic(null);
+  setReportTitle("Vue d'ensemble");
   showLogin();
 }
 window.doLogout = doLogout;
@@ -2442,6 +2514,7 @@ function setupRoleUI() {
     if (cn) cn.style.display = 'none';
     const cl = document.getElementById('clientNavList');
     if (cl) cl.innerHTML = '';
+    setReportTitle("Vue d'ensemble");
   }
 }
 function populateAdminClientSelect() {
@@ -2525,16 +2598,22 @@ async function loadAdminView() {
 }
 
 // Marque en haut à gauche selon la vue (1 client → sa marque ; sinon libellé agrégé)
+function setReportTitle(t) {
+  const el = document.getElementById('reportTitle');
+  if (el) el.textContent = t;
+}
+
 function applyViewBranding() {
-  // Un seul client sélectionné → sa marque (nom + logo)
+  // Un seul client sélectionné → sa marque (nom + logo) ET titre du rapport = nom du client
   if (adminViewClientIds.length === 1) {
     const c = adminClients.find(x => x.id === adminViewClientIds[0]);
-    if (c) { applyClientName(c.name); applyClientLogo(c.logo_url || null); return; }
+    if (c) { applyClientName(c.name); applyClientLogo(c.logo_url || null); setReportTitle(c.name); return; }
   }
-  // Vue d'ensemble / plusieurs clients → marque de l'agence, sans logo
+  // Vue d'ensemble / plusieurs clients → marque de l'agence, sans logo, titre = "Vue d'ensemble"
   applyClientName(null);                       // → "Hike UP" (valeur par défaut)
   const main = document.getElementById('clientLogo');
   if (main) main.innerHTML = '';               // aucun logo affiché
+  setReportTitle("Vue d'ensemble");
 }
 
 // Construit la liste des clients dans la barre latérale (admin, multi-sélection)
