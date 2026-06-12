@@ -298,6 +298,10 @@
     font-size: 11px; display: inline-block; margin-top: 4px;
   }
   .help:hover .tip { opacity: 1; }
+  .trend { position: relative; cursor: help; }
+  .trend .trend-tip { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #1a1a1f; color: #fff; padding: 7px 9px; border-radius: 8px; font-size: 11px; font-weight: 400; width: 180px; line-height: 1.4; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.12s; z-index: 20; }
+  .trend .trend-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: #1a1a1f; }
+  .trend:hover .trend-tip { opacity: 1; }
   /* Chart */
   .chart-card { padding: 18px 20px; margin-bottom: 16px; }
   .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -1585,14 +1589,16 @@ function applyAlertFilter(rows) {
 }
 /* ======================== KPI ======================== */
 function trendArrow(cur, prev, inverse = false) {
-  const TIP = "Comparaison : opportunités créées ces 30 derniers jours vs les 30 jours précédents";
-  if (Math.round(cur) === Math.round(prev)) return `<span style="color:var(--text-faint); cursor:help;" title="${TIP} — stable">→</span>`;
+  const TIP = 'Opportunités créées ces 30 derniers jours, comparées aux 30 jours précédents.';
+  if (Math.round(cur) === Math.round(prev)) {
+    return `<span class="trend" style="color:var(--text-faint);">→<span class="trend-tip">${TIP} Stable.</span></span>`;
+  }
   const up = cur > prev;
   const good = inverse ? !up : up;
   const color = good ? '#1f9c52' : '#c0392b';
   const sym = up ? '▲' : '▼';
   const pct = prev > 0 ? Math.round(Math.abs(cur - prev) / prev * 100) : 100;
-  return `<span style="color:${color}; font-weight:600; cursor:help;" title="${TIP}">${sym} ${pct}%</span>`;
+  return `<span class="trend" style="color:${color}; font-weight:600;">${sym} ${pct}%<span class="trend-tip">${TIP}</span></span>`;
 }
 function renderKPIs(rows) {
   const isWon  = r => r.status === 'Gagné';
