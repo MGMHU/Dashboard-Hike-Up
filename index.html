@@ -184,16 +184,20 @@
   .reset-btn:hover { color: var(--text); }
   .commercial-row { display: flex; flex-wrap: wrap; gap: 8px; }
 
-  /* Série de filtres */
-  .filter-bar { display: flex; flex-wrap: wrap; gap: 16px 20px; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
-  .filter-group { display: flex; align-items: center; gap: 8px; }
-  .filter-label { font-size: 12px; color: var(--text-faint); }
-  .seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; }
-  .seg button { border: none; background: #fff; padding: 6px 11px; font-size: 12.5px; color: var(--text-muted); cursor: pointer; border-right: 1px solid var(--border); }
-  .seg button:last-child { border-right: none; }
-  .seg button:hover { background: #f5f6f8; }
-  .seg button.active { background: #1a1a1f; color: #fff; }
-  #statusSelect { padding-top: 7px; padding-bottom: 7px; font-size: 12.5px; }
+  /* Série de filtres — tags uniformes */
+  .filter-bar { display: flex; flex-direction: column; gap: 11px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .filter-group { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+  .filter-label { font-size: 12px; color: var(--text-faint); min-width: 58px; padding-top: 6px; }
+  .ftags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ftag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 999px;
+    background: #fff; font-size: 12.5px; color: var(--text-muted);
+    cursor: pointer; user-select: none; transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .ftag:hover { background: #f7f7fa; }
+  .ftag.active { background: #1a1a1f; color: #fff; border-color: #1a1a1f; }
+  .ftag .ftag-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .chip {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 3px 10px 3px 3px;
@@ -727,29 +731,29 @@
         </div>
         <div class="commercial-row" id="commercialRow"></div>
 
-        <!-- Série de filtres -->
+        <!-- Série de filtres (tags) -->
         <div class="filter-bar">
           <div class="filter-group">
             <span class="filter-label">Période</span>
-            <div class="seg" id="periodSeg">
-              <button type="button" data-p="0" class="active">Tout</button>
-              <button type="button" data-p="12">12 m</button>
-              <button type="button" data-p="6">6 m</button>
-              <button type="button" data-p="3">3 m</button>
-              <button type="button" data-p="1">1 m</button>
+            <div class="ftags" id="periodTags">
+              <span class="ftag active" data-p="0">Tout</span>
+              <span class="ftag" data-p="12">12 m</span>
+              <span class="ftag" data-p="6">6 m</span>
+              <span class="ftag" data-p="3">3 m</span>
+              <span class="ftag" data-p="1">1 m</span>
             </div>
           </div>
           <div class="filter-group">
             <span class="filter-label">Montant</span>
-            <div class="seg" id="amountSeg">
-              <button type="button" data-a="all" class="active">Tous</button>
-              <button type="button" data-a="with">Avec</button>
-              <button type="button" data-a="without">Sans</button>
+            <div class="ftags" id="amountTags">
+              <span class="ftag active" data-a="all">Tous</span>
+              <span class="ftag" data-a="with">Avec montant</span>
+              <span class="ftag" data-a="without">Sans montant</span>
             </div>
           </div>
           <div class="filter-group">
             <span class="filter-label">Statut</span>
-            <select id="statusSelect" class="select"></select>
+            <div class="ftags" id="statusTags"></div>
           </div>
         </div>
 
@@ -1157,7 +1161,7 @@ let selectedUserId = null;
 let adminAuthed = false;
 // Filtres (les menus déroulants ont été retirés ; le filtrage par statut
 // se fait par clic sur les barres de statut). 0 mois = toute la période.
-let statusFilterValue = 'all';
+let statusFilterSet = [];   // statuts cochés (multi). Vide = tous.
 let periodFilterValue = 0;
 let amountFilter = 'all';   // all | with | without
 let activeAlertKey = null;
@@ -1220,8 +1224,7 @@ function applyFilters(rows, opts = {}) {
   let r = rows.slice();
   if (selectedUserId !== null) r = r.filter(x => x.userId === selectedUserId);
   if (!opts.skipStatus) {
-    const status = statusFilterValue;
-    if (status !== 'all') r = r.filter(x => x.status === status);
+    if (statusFilterSet.length) r = r.filter(x => statusFilterSet.includes(x.status));
   }
   if (amountFilter === 'with') r = r.filter(x => x.amount > 0);
   else if (amountFilter === 'without') r = r.filter(x => x.amount === 0);
@@ -1486,13 +1489,12 @@ function renderStatus(rows) {
   rows.forEach(r => { counts[r.status] = (counts[r.status] || 0) + 1; });
   const max = Math.max(1, ...Object.values(counts));
   const container = document.getElementById('statusRows');
-  const currentStatus = statusFilterValue;
   container.innerHTML = '';
   STATUS_ORDER.forEach(st => {
     if (!counts[st]) return;
     const pct = (counts[st] / max) * 100;
     const color = STATUS_COLOR[st] || '#dcdce1';
-    const isActive = currentStatus === st;
+    const isActive = statusFilterSet.includes(st);
     const row = document.createElement('div');
     row.className = 'status-row' + (isActive ? ' active' : '');
     row.innerHTML = `
@@ -1503,8 +1505,7 @@ function renderStatus(rows) {
       <div class="status-count">${counts[st]}</div>
     `;
     row.addEventListener('click', () => {
-      statusFilterValue = (statusFilterValue === st) ? 'all' : st;
-      refresh();
+      toggleStatus(st);
     });
     container.appendChild(row);
   });
@@ -1719,23 +1720,30 @@ function renderTable(rows) {
 /* ======================== Wiring ======================== */
 function populateStatusFilter() {
   const known = new Set(rawRows.map(r => r.status).filter(Boolean));
-  if (statusFilterValue !== 'all' && !known.has(statusFilterValue)) {
-    statusFilterValue = 'all';
+  // purge des statuts cochés qui n'existent plus dans les données
+  statusFilterSet = statusFilterSet.filter(s => known.has(s));
+  const box = document.getElementById('statusTags');
+  if (box) {
+    const list = STATUS_ORDER.filter(s => known.has(s));
+    box.innerHTML = list.map(s =>
+      `<span class="ftag${statusFilterSet.includes(s) ? ' active' : ''}" data-st="${escapeHTML(s)}">
+        <span class="ftag-dot" style="background:${STATUS_COLOR[s] || '#dcdce1'}"></span>${escapeHTML(s)}
+      </span>`).join('');
   }
-  const sel = document.getElementById('statusSelect');
-  if (sel) {
-    sel.innerHTML = '<option value="all">Tous les statuts</option>' +
-      STATUS_ORDER.filter(s => known.has(s)).map(s => `<option value="${s}">${escapeHTML(s)}</option>`).join('');
-    sel.value = statusFilterValue;
-  }
+}
+
+// Bascule un statut dans la sélection multiple
+function toggleStatus(st) {
+  if (statusFilterSet.includes(st)) statusFilterSet = statusFilterSet.filter(x => x !== st);
+  else statusFilterSet = [...statusFilterSet, st];
+  refresh();
 }
 
 // Synchronise l'affichage des contrôles de filtres avec l'état courant
 function syncFilterControls() {
-  document.querySelectorAll('#periodSeg button').forEach(b => b.classList.toggle('active', parseInt(b.dataset.p) === periodFilterValue));
-  document.querySelectorAll('#amountSeg button').forEach(b => b.classList.toggle('active', b.dataset.a === amountFilter));
-  const sel = document.getElementById('statusSelect');
-  if (sel) sel.value = statusFilterValue;
+  document.querySelectorAll('#periodTags .ftag').forEach(b => b.classList.toggle('active', parseInt(b.dataset.p) === periodFilterValue));
+  document.querySelectorAll('#amountTags .ftag').forEach(b => b.classList.toggle('active', b.dataset.a === amountFilter));
+  document.querySelectorAll('#statusTags .ftag').forEach(b => b.classList.toggle('active', statusFilterSet.includes(b.dataset.st)));
 }
 function refresh() {
   const filtered = applyFilters(rawRows);
@@ -1762,7 +1770,7 @@ function loadData(rows) {
 document.getElementById('resetBtn').addEventListener('click', () => {
   selectedUserId = null;
   activeAlertKey = null;
-  statusFilterValue = 'all';
+  statusFilterSet = [];
   periodFilterValue = 0;
   amountFilter = 'all';
   renderCommercials();
@@ -1771,27 +1779,27 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   refresh();
 });
 
-// Filtre Période
-const periodSeg = document.getElementById('periodSeg');
-if (periodSeg) periodSeg.addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return;
-  periodFilterValue = parseInt(b.dataset.p);
+// Filtre Période (tag — sélection unique)
+const periodTags = document.getElementById('periodTags');
+if (periodTags) periodTags.addEventListener('click', e => {
+  const t = e.target.closest('.ftag'); if (!t) return;
+  periodFilterValue = parseInt(t.dataset.p);
   syncFilterControls();
   refresh();
 });
-// Filtre Montant
-const amountSeg = document.getElementById('amountSeg');
-if (amountSeg) amountSeg.addEventListener('click', e => {
-  const b = e.target.closest('button'); if (!b) return;
-  amountFilter = b.dataset.a;
+// Filtre Montant (tag — sélection unique)
+const amountTags = document.getElementById('amountTags');
+if (amountTags) amountTags.addEventListener('click', e => {
+  const t = e.target.closest('.ftag'); if (!t) return;
+  amountFilter = t.dataset.a;
   syncFilterControls();
   refresh();
 });
-// Filtre Statut (menu)
-const statusSelectEl = document.getElementById('statusSelect');
-if (statusSelectEl) statusSelectEl.addEventListener('change', () => {
-  statusFilterValue = statusSelectEl.value;
-  refresh();
+// Filtre Statut (tags — multi-sélection)
+const statusTags = document.getElementById('statusTags');
+if (statusTags) statusTags.addEventListener('click', e => {
+  const t = e.target.closest('.ftag'); if (!t) return;
+  toggleStatus(t.dataset.st);
 });
 document.querySelectorAll('.tab').forEach(t => {
   t.addEventListener('click', () => {
@@ -2371,7 +2379,7 @@ async function doLogout() {
   adminVisibility = {};
   rawRows = [];
   selectedUserId = null;
-  statusFilterValue = 'all';
+  statusFilterSet = [];
   activeAlertKey = null;
   // Nettoie l'affichage (liste clients, identité) + le cache local
   const cl = document.getElementById('clientNavList'); if (cl) cl.innerHTML = '';
@@ -2547,7 +2555,7 @@ function renderClientNav() {
 // Réinitialise les filtres du dashboard (commercial, statut, alerte)
 function resetDashboardFilters() {
   selectedUserId = null;
-  statusFilterValue = 'all';
+  statusFilterSet = [];
   activeAlertKey = null;
 }
 async function applyClientBranding(clientId, isAdmin) {
