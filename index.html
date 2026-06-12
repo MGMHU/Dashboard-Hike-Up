@@ -1437,12 +1437,15 @@ function renderFunnel(rows) {
   if (!el) return;
   const total = rows.length;
   const isWon = r => r.status === 'Gagné', isLost = r => r.status === 'Perdu';
+  const nouveau = rows.filter(r => r.status === 'Nouveau').length;
+  const reachedRdv = total - nouveau;   // a dépassé "Nouveau" → a eu un rendez-vous (approximation)
   const reached = rows.filter(r => r.status === 'Devis/Offre envoyé' || isWon(r) || isLost(r)).length;
   const won = rows.filter(isWon).length;
   const stages = [
-    { label: 'Toutes les opportunités', n: total,   color: '#d6e2ff' },
-    { label: 'Devis envoyés',           n: reached, color: '#b6c2f6' },
-    { label: 'Gagnées',                 n: won,     color: '#7fd4a0' },
+    { label: 'Toutes les opportunités', n: total,      color: '#dbe6ff' },
+    { label: 'Rendez-vous',             n: reachedRdv, color: '#aec6f2' },
+    { label: 'Devis envoyés',           n: reached,    color: '#84b0e0' },
+    { label: 'Gagnées',                 n: won,        color: '#6fcfa4' },
   ];
   const max = Math.max(1, total);
   let html = '';
