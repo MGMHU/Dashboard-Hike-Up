@@ -703,11 +703,43 @@
   .mock-frow { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
   .mock-frow:last-child { border-bottom: none; }
   @media (max-width: 880px) { .login-right { display: none; } .login-left { flex: 1; max-width: none; } }
+  /* ===== Mobile : barre latérale en tiroir (n'impacte pas le desktop > 980px) ===== */
+  .mobile-nav-btn { display: none; }
+  .nav-backdrop { display: none; }
   @media (max-width: 980px) {
-    .sidebar { width: 64px; }
-    .sidebar .brand-name, .sidebar-user .info, .nav-item span { display: none; }
-    .nav-item { justify-content: center; }
-    .sidebar-user { justify-content: center; }
+    .mobile-nav-btn { display: inline-flex; align-items: center; justify-content: center; position: fixed; top: 12px; left: 12px; z-index: 200; width: 40px; height: 40px; border-radius: 10px; background: #fff; border: 1px solid var(--border-strong); color: var(--text); box-shadow: var(--shadow); cursor: pointer; }
+    .sidebar { position: fixed; left: 0; top: 0; height: 100vh; width: 264px; transform: translateX(-100%); transition: transform 0.25s ease; z-index: 300; box-shadow: 0 0 40px rgba(0,0,0,0.18); }
+    .app.nav-open .sidebar { transform: translateX(0); }
+    .nav-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.42); z-index: 250; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .app.nav-open .nav-backdrop { display: block; opacity: 1; pointer-events: auto; }
+    .main { width: 100%; min-width: 0; }
+    .page { padding: 64px 16px 48px; }
+    .header h1 { font-size: 23px; }
+    .two-col { grid-template-columns: 1fr; }
+    .sidebar-toggle { display: none; }
+    .sidebar.collapsed { width: 264px; }
+    .sidebar.collapsed .brand-name,
+    .sidebar.collapsed .sidebar-user .info,
+    .sidebar.collapsed .nav-item span,
+    .sidebar.collapsed .client-nav-name,
+    .sidebar.collapsed .cons-name,
+    .sidebar.collapsed .cons-count,
+    .sidebar.collapsed .sidebar-section-title,
+    .sidebar.collapsed .sidebar-brand .client-logo { display: revert; }
+  }
+  @media (max-width: 700px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .kpi .value { font-size: 21px; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-card table { min-width: 600px; }
+    .chart-wrap { height: 230px; }
+    .modal { max-width: 100%; }
+  }
+  @media (max-width: 460px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .kpi-grid-sm { grid-template-columns: 1fr 1fr; }
+    .page { padding: 60px 12px 40px; }
+    .header h1 { font-size: 21px; }
   }
   @media (max-width: 900px) {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -806,6 +838,10 @@
   </div>
 </div>
 <div class="app">
+  <button id="mobileNav" class="mobile-nav-btn" type="button" aria-label="Ouvrir le menu">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div id="navBackdrop" class="nav-backdrop"></div>
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-brand">
@@ -3124,9 +3160,19 @@ function applyLoginLogo() {
   if (fb) fb.style.display = 'none';
 }
 
+function closeMobileNav() { const a = document.querySelector('.app'); if (a) a.classList.remove('nav-open'); }
+function initMobileNav() {
+  const btn = document.getElementById('mobileNav');
+  const bd = document.getElementById('navBackdrop');
+  const nav = document.querySelector('.sidebar-nav');
+  if (btn) btn.addEventListener('click', () => { const a = document.querySelector('.app'); if (a) a.classList.toggle('nav-open'); });
+  if (bd) bd.addEventListener('click', closeMobileNav);
+  if (nav) nav.addEventListener('click', e => { if (e.target.closest('.client-nav-item, .cons-name, #navOverview')) closeMobileNav(); });
+}
 async function initApp() {
   loadBranding();
   initSidebarToggle();
+  initMobileNav();
   applyLoginLogo();
   if (!sb) {
     // Mode démo local : aucune config Supabase → on garde le comportement d'origine
