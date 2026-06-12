@@ -2768,8 +2768,14 @@ async function loadConsultants() {
   (data || []).forEach(c => { adminConsultants[c.name] = c; });
   const dl = document.getElementById('consultantList');
   if (dl) dl.innerHTML = Object.keys(adminConsultants).map(n => `<option value="${escapeHTML(n)}"></option>`).join('');
+  // Inclure aussi les consultants présents uniquement en texte sur les clients
+  const { data: cc } = await sb.from('clients').select('consultant');
+  const names = new Set(Object.keys(adminConsultants));
+  (cc || []).forEach(r => { if (r.consultant) names.add(r.consultant); });
+  const allNames = Array.from(names).sort((a, b) => a.localeCompare(b, 'fr'));
+  if (dl) dl.innerHTML = allNames.map(n => `<option value="${escapeHTML(n)}"></option>`).join('');
   const es = document.getElementById('editConsSelect');
-  if (es) { const keep = es.value; es.innerHTML = '<option value="">— choisir —</option>' + Object.keys(adminConsultants).map(n => `<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join(''); es.value = keep; }
+  if (es) { const keep = es.value; es.innerHTML = '<option value="">— choisir —</option>' + allNames.map(n => `<option value="${escapeHTML(n)}">${escapeHTML(n)}${adminConsultants[n] ? '' : ' (sans fiche)'}</option>`).join(''); es.value = keep; }
 }
 let newConsPhotoData = null, editConsPhotoData = null, editConsPhotoTouched = false;
 function _consReadImg(input, cb) { const f = input.files[0]; if (!f) return; const r = new FileReader(); r.onload = e => cb(e.target.result); r.readAsDataURL(f); }
@@ -2794,7 +2800,7 @@ function _consReadImg(input, cb) { const f = input.files[0]; if (!f) return; con
   if (esel) esel.addEventListener('change', () => {
     const c = adminConsultants[esel.value];
     editConsPhotoData = null; editConsPhotoTouched = false;
-    document.getElementById('editConsName').value = c ? c.name : '';
+    document.getElementById('editConsName').value = c ? c.name : (esel.value || '');
     const p = document.getElementById('editConsPhotoPreview');
     if (p) p.innerHTML = (c && c.photo_url) ? `<img src="${c.photo_url}" style="width:100%;height:100%;object-fit:cover;">` : '';
   });
@@ -2810,9 +2816,15 @@ function _consReadImg(input, cb) { const f = input.files[0]; if (!f) return; con
     const c = adminConsultants[oldName];
     const newName = document.getElementById('editConsName').value.trim();
     if (!newName) { box.innerHTML = '<div class="alert error">Nom requis.</div>'; return; }
-    const patch = { name: newName };
-    if (editConsPhotoTouched) patch.photo_url = editConsPhotoData;
-    const { error } = await sb.from('consultants').update(patch).eq('id', c.id);
+    let error;
+    if (c && c.id) {
+      const patch = { name: newName };
+      if (editConsPhotoTouched) patch.photo_url = editConsPhotoData;
+      ({ error } = await sb.from('consultants').update(patch).eq('id', c.id));
+    } else {
+      // Consultant présent seulement en texte sur les clients : on crée sa fiche
+      ({ error } = await sb.from('consultants').insert({ name: newName, photo_url: editConsPhotoTouched ? editConsPhotoData : null }));
+    }
     if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
     if (newName !== oldName) { await sb.from('clients').update({ consultant: newName }).eq('consultant', oldName); await refreshAdminClients(); }
     box.innerHTML = '<div class="alert success">Consultant mis à jour.</div>';
