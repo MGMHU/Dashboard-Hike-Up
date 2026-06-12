@@ -721,6 +721,9 @@
     .nav-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.42); z-index: 250; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .app.nav-open .nav-backdrop { display: block; opacity: 1; pointer-events: auto; }
     .main { width: 100%; min-width: 0; }
+    .sidebar { width: 240px; }
+    .sidebar-brand, .sidebar-user { display: none; }
+    .sidebar-nav { padding-top: 16px; }
     .mobile-topbar { display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 200; background: rgba(255,255,255,0.94); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 8px 10px; height: 56px; }
     .mtb-btn { width: 40px; height: 40px; border-radius: 10px; border: none; background: transparent; color: var(--text); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
     .mtb-btn:active { background: #eceef1; }
@@ -2789,6 +2792,10 @@ function applyUserPic(dataUrl) {
   const html = dataUrl ? `<img src="${dataUrl}" alt="Profil">` : USER_PLACEHOLDER;
   main.innerHTML = html;
   if (preview) preview.innerHTML = html;
+  const mb = document.getElementById('mobileProfile');
+  if (mb) mb.innerHTML = dataUrl
+    ? `<img src="${dataUrl}" alt="Profil" style="width:30px;height:30px;border-radius:50%;object-fit:cover;">`
+    : '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 }
 function loadBranding() {
   applyClientName(getStored(LS_KEYS.clientName));
