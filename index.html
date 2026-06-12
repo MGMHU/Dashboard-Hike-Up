@@ -203,6 +203,23 @@
   .ftag.active { background: #1a1a1f; color: #fff; border-color: #1a1a1f; }
   .ftag .ftag-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .date-input { width: auto; padding: 6px 10px; font-size: 12.5px; }
+  .dp { position: relative; display: inline-block; }
+  .dp-pop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 40; background: #fff; border: 1px solid var(--border-strong); border-radius: 12px; box-shadow: var(--shadow); padding: 12px; width: 250px; display: none; }
+  .dp-pop.open { display: block; }
+  .dp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .dp-month { font-size: 13px; font-weight: 600; text-transform: capitalize; }
+  .dp-nav { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 18px; width: 26px; height: 26px; border-radius: 6px; line-height: 1; }
+  .dp-nav:hover { background: #f1f2f5; color: var(--text); }
+  .dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .dp-dow { font-size: 10px; color: var(--text-faint); text-align: center; padding: 4px 0; }
+  .dp-day { font-size: 12px; text-align: center; padding: 6px 0; border-radius: 7px; cursor: pointer; color: var(--text); user-select: none; }
+  .dp-day:hover { background: #f1f2f5; }
+  .dp-day.empty { visibility: hidden; }
+  .dp-day.in-range { background: var(--accent-soft); border-radius: 0; }
+  .dp-day.range-start { background: #1a1a1f; color: #fff; border-radius: 7px 0 0 7px; }
+  .dp-day.range-end { background: #1a1a1f; color: #fff; border-radius: 0 7px 7px 0; }
+  .dp-day.range-start.range-end { border-radius: 7px; }
+  .dp-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
   .chip {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 2px 9px 2px 2px;
@@ -289,6 +306,14 @@
   .tabs { display: flex; gap: 18px; font-size: 13px; }
   .tab { color: var(--text-muted); cursor: pointer; padding-bottom: 4px; border-bottom: 2px solid transparent; }
   .tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 500; }
+  .chart-settings { position: relative; }
+  .chart-gear { background: none; border: 1px solid var(--border-strong); border-radius: 8px; width: 30px; height: 28px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; }
+  .chart-gear:hover { background: #f5f6f8; color: var(--text); }
+  .chart-menu { position: absolute; right: 0; top: calc(100% + 6px); background: #fff; border: 1px solid var(--border-strong); border-radius: 10px; box-shadow: var(--shadow); padding: 8px; min-width: 200px; z-index: 30; display: none; }
+  .chart-menu.open { display: block; }
+  .chart-menu-title { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-faint); font-weight: 600; padding: 4px 8px 6px; }
+  .chart-menu-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 13px; color: var(--text); cursor: pointer; border-radius: 6px; }
+  .chart-menu-item:hover { background: #f5f6f8; }
   .chart-wrap { position: relative; height: 280px; margin-top: 8px; }
   /* Status distribution */
   .status-card { padding: 18px 20px; margin-bottom: 16px; }
@@ -852,10 +877,21 @@
           </div>
           <div class="filter-group">
             <span class="filter-label">Création</span>
-            <input type="date" id="dateFrom" class="input date-input">
-            <span style="color:var(--text-faint); font-size:13px;">&rarr;</span>
-            <input type="date" id="dateTo" class="input date-input">
-            <button class="ftag" id="dateClear" type="button" title="Effacer les dates">✕</button>
+            <div class="dp">
+              <button class="ftag dp-trigger" id="dpTrigger" type="button">Toutes les dates</button>
+              <div class="dp-pop" id="dpPop">
+                <div class="dp-head">
+                  <button class="dp-nav" id="dpPrev" type="button" aria-label="Mois précédent">&lsaquo;</button>
+                  <div class="dp-month" id="dpMonth"></div>
+                  <button class="dp-nav" id="dpNext" type="button" aria-label="Mois suivant">&rsaquo;</button>
+                </div>
+                <div class="dp-grid" id="dpGrid"></div>
+                <div class="dp-foot">
+                  <button class="ftag" id="dpClear" type="button">Effacer</button>
+                  <span class="muted" style="font-size:11px;">Cliquez début puis fin</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -922,9 +958,14 @@
             <div class="chart-title">Pipeline mensuel</div>
             <div class="chart-sub">Montant des opportunités par date de suivi</div>
           </div>
-          <div class="tabs">
-            <div class="tab active" data-mode="cumul">Cumulé</div>
-            <div class="tab" data-mode="closing">Closing par mois</div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="tabs" id="chartTabs"></div>
+            <div class="chart-settings">
+              <button class="chart-gear" id="chartGear" type="button" aria-label="Personnaliser le graphique" title="Personnaliser le graphique">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </button>
+              <div class="chart-menu" id="chartMenu"></div>
+            </div>
           </div>
         </div>
         <div class="chart-wrap"><canvas id="pipelineChart"></canvas></div>
@@ -1290,6 +1331,13 @@ function escapeHTML(s) {
 let rawRows = [];
 let chartInstance = null;
 let chartMode = 'cumul';
+const ALL_VIEWS = [
+  { key: 'cumul', label: 'Cumulé', fixed: true },
+  { key: 'closing', label: 'Closing par mois', fixed: true },
+  { key: 'source', label: 'Par source' },
+  { key: 'commercial', label: 'Par commercial' },
+];
+let chartViews = ['cumul', 'closing'];
 let selectedUserId = null;
 let adminAuthed = false;
 // Filtres (les menus déroulants ont été retirés ; le filtrage par statut
@@ -1509,13 +1557,14 @@ function applyAlertFilter(rows) {
   return rows.filter(ALERT_PREDICATES[activeAlertKey]);
 }
 /* ======================== KPI ======================== */
-function trendArrow(cur, prev) {
-  if (cur === prev) return '<span style="color:var(--text-faint);">→ stable</span>';
+function trendArrow(cur, prev, inverse = false) {
+  if (Math.round(cur) === Math.round(prev)) return '<span style="color:var(--text-faint);" title="vs 30 jours précédents">→</span>';
   const up = cur > prev;
-  const color = up ? '#1f9c52' : '#c0392b';
+  const good = inverse ? !up : up;
+  const color = good ? '#1f9c52' : '#c0392b';
   const sym = up ? '▲' : '▼';
   const pct = prev > 0 ? Math.round(Math.abs(cur - prev) / prev * 100) : 100;
-  return `<span style="color:${color}; font-weight:600;">${sym} ${pct}%</span>`;
+  return `<span style="color:${color}; font-weight:600;" title="vs 30 jours précédents">${sym} ${pct}%</span>`;
 }
 function renderKPIs(rows) {
   const isWon  = r => r.status === 'Gagné';
@@ -1537,13 +1586,38 @@ function renderKPIs(rows) {
   const wonWithAmt = won.filter(r => r.amount > 0);
   const avgWon = wonWithAmt.length ? wonWithAmt.reduce((s,r) => s + r.amount, 0) / wonWithAmt.length : 0;
   const subKpi = t => `<div style="font-size:11px; font-weight:500; color:var(--text-faint); margin-top:3px;">${t}</div>`;
+  // Tendance par KPI : cohorte créée sur les 30 derniers jours vs les 30 jours précédents
+  const _winR = (lo, hi) => rows.filter(r => { const d = parseDateFR(r.createdAt); if (!d) return false; const dd = (Date.now() - d.getTime()) / 86400000; return dd >= lo && dd < hi; });
+  const _c = _winR(0, 30), _p = _winR(30, 60);
+  const _activeAmt = rs => rs.filter(isActive).reduce((s,r) => s + r.amount, 0);
+  const _wonAmt = rs => rs.filter(isWon).reduce((s,r) => s + r.amount, 0);
+  const _weightedM = rs => rs.reduce((s,r) => s + r.amount * (r.percentage/100), 0);
+  const _activeCnt = rs => rs.filter(isActive).length;
+  const _convM = rs => { const w = rs.filter(isWon).length, l = rs.filter(isLost).length; return (w+l) ? w/(w+l)*100 : 0; };
+  const _winDevisM = rs => { const w = rs.filter(isWon).length; const dr = rs.filter(r => r.status==='Devis/Offre envoyé' || isWon(r) || isLost(r)).length; return dr ? w/dr*100 : 0; };
+  const _avgDevisM = rs => { const d = rs.filter(r => r.status==='Devis/Offre envoyé' && r.amount>0); return d.length ? d.reduce((s,r)=>s+r.amount,0)/d.length : 0; };
+  const _devisCnt = rs => rs.filter(r => r.status==='Devis/Offre envoyé').length;
+  const _cycleM = rs => { const v = rs.filter(isWon).map(r => { const a=parseDateFR(r.createdAt), b=parseDateFR(r.followUp); return (a&&b)?Math.round((b-a)/86400000):null; }).filter(x => x!=null && x>=0); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : 0; };
+  const _ageM = rs => { const v = rs.filter(isActive).map(r => { const a=parseDateFR(r.createdAt); return a?Math.round((Date.now()-a.getTime())/86400000):null; }).filter(x => x!=null && x>=0); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : 0; };
+  const T = {
+    pipeline: trendArrow(_activeAmt(_c), _activeAmt(_p)),
+    won: trendArrow(_wonAmt(_c), _wonAmt(_p)),
+    weighted: trendArrow(_weightedM(_c), _weightedM(_p)),
+    active: trendArrow(_activeCnt(_c), _activeCnt(_p)),
+    conv: trendArrow(_convM(_c), _convM(_p)),
+    winDevis: trendArrow(_winDevisM(_c), _winDevisM(_p)),
+    avg: trendArrow(_avgDevisM(_c), _avgDevisM(_p)),
+    devis: trendArrow(_devisCnt(_c), _devisCnt(_p)),
+    cycle: trendArrow(_cycleM(_c), _cycleM(_p), true),
+    age: trendArrow(_ageM(_c), _ageM(_p), true),
+  };
   document.getElementById('kpiPipeline').innerHTML =
-    `${fmtEUR(pipelineTotal)}<div style="font-size:11px; font-weight:500; color:var(--text-faint); margin-top:3px; letter-spacing:0;">${won.length} gagné${won.length > 1 ? 's' : ''} · ${lost.length} perdu${lost.length > 1 ? 's' : ''}</div>`;
-  document.getElementById('kpiWon').innerHTML      = `${fmtEUR(wonTotal)}${subKpi(`${won.length} opportunité${won.length > 1 ? 's' : ''} gagnée${won.length > 1 ? 's' : ''}`)}`;
-  document.getElementById('kpiWeighted').innerHTML = `${fmtEUR(weighted)}`;
-  document.getElementById('kpiActive').innerHTML   = `${activeCount}${subKpi(`${rows.length} au total`)}`;
-  document.getElementById('kpiConv').innerHTML     = `${conv.toFixed(1)} <small>%</small>`;
-  document.getElementById('kpiAvg').innerHTML      = `${fmtEUR(avgDevis)}${subKpi(`Gagnés : ${fmtEUR(avgWon)}`)}`;
+    `${fmtEUR(pipelineTotal)}<div style="font-size:11px; font-weight:500; color:var(--text-faint); margin-top:3px; letter-spacing:0;">${won.length} gagné${won.length > 1 ? 's' : ''} · ${lost.length} perdu${lost.length > 1 ? 's' : ''} · ${T.pipeline}</div>`;
+  document.getElementById('kpiWon').innerHTML      = `${fmtEUR(wonTotal)}${subKpi(`${won.length} gagnée${won.length > 1 ? 's' : ''} · ${T.won}`)}`;
+  document.getElementById('kpiWeighted').innerHTML = `${fmtEUR(weighted)}${subKpi(T.weighted)}`;
+  document.getElementById('kpiActive').innerHTML   = `${activeCount}${subKpi(`${rows.length} au total · ${T.active}`)}`;
+  document.getElementById('kpiConv').innerHTML     = `${conv.toFixed(1)} <small>%</small>${subKpi(T.conv)}`;
+  document.getElementById('kpiAvg').innerHTML      = `${fmtEUR(avgDevis)}${subKpi(`Gagnés : ${fmtEUR(avgWon)} · ${T.avg}`)}`;
 
   // --- KPI additionnels ---
   // Transformation des devis
@@ -1566,11 +1640,11 @@ function renderKPIs(rows) {
   const devisList = rows.filter(r => r.status === 'Devis/Offre envoyé');
   const devisAmt = devisList.reduce((s,r) => s + r.amount, 0);
 
-  document.getElementById('kpiWinDevis').innerHTML = `${winDevis.toFixed(1)} <small>%</small>${subKpi(`${won.length} / ${devisReached.length} devis`)}`;
-  document.getElementById('kpiCycle').innerHTML    = avgCycle != null ? `${avgCycle} <small>j</small>` : '<span class="muted">—</span>';
-  document.getElementById('kpiAge').innerHTML      = (avgAge != null ? `${avgAge} <small>j</small>` : '<span class="muted">—</span>') + subKpi(`${dormantPct}% dormantes (>21 j)`);
+  document.getElementById('kpiWinDevis').innerHTML = `${winDevis.toFixed(1)} <small>%</small>${subKpi(`${won.length} / ${devisReached.length} devis · ${T.winDevis}`)}`;
+  document.getElementById('kpiCycle').innerHTML    = (avgCycle != null ? `${avgCycle} <small>j</small>` : '<span class="muted">—</span>') + subKpi(T.cycle);
+  document.getElementById('kpiAge').innerHTML      = (avgAge != null ? `${avgAge} <small>j</small>` : '<span class="muted">—</span>') + subKpi(`${dormantPct}% dormantes · ${T.age}`);
   document.getElementById('kpiNew').innerHTML      = `${new30}${subKpi(`${trendArrow(new30, prev30)} · 30 j préc. : ${prev30}`)}`;
-  document.getElementById('kpiDevis').innerHTML    = `${devisList.length}${subKpi(fmtEUR(devisAmt))}`;
+  document.getElementById('kpiDevis').innerHTML    = `${devisList.length}${subKpi(`${fmtEUR(devisAmt)} · ${T.devis}`)}`;
 }
 
 /* ======================== Funnel ======================== */
@@ -1698,13 +1772,15 @@ function renderChart(rows) {
   const ctx = document.getElementById('pipelineChart').getContext('2d');
   if (chartInstance) chartInstance.destroy();
   const subEl = document.querySelector('.chart-sub'); const titleEl = document.querySelector('.chart-title');
-  if (titleEl) titleEl.textContent = chartMode === 'cumul' ? 'Pipeline mensuel' : 'Closing par mois';
-  if (subEl) subEl.textContent = chartMode === 'cumul' ? 'Montant des opportunités par date de suivi' : 'Opportunités créées vs clôturées (gagné/perdu) par mois';
+  const TITLES = { cumul: ['Pipeline mensuel','Montant des opportunités par date de suivi'], closing: ['Closing par mois','Opportunités créées vs clôturées (gagné/perdu) par mois'], source: ['Répartition par source','Montant des opportunités par source'], commercial: ['Répartition par commercial','Montant des opportunités par commercial'] };
+  const _ttl = TITLES[chartMode] || TITLES.cumul;
+  if (titleEl) titleEl.textContent = _ttl[0];
+  if (subEl) subEl.textContent = _ttl[1];
   const common = {
     responsive: true, maintainAspectRatio: false,
     plugins: {
-      legend: { display: chartMode !== 'cumul', position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
-      tooltip: { callbacks: { label: (c) => chartMode === 'cumul' ? `${c.dataset.label || 'Pipeline'}: ${fmtEUR(c.parsed.y)}` : `${c.dataset.label}: ${c.parsed.y}` } }
+      legend: { display: chartMode === 'closing', position: 'bottom', labels: { boxWidth: 8, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } } },
+      tooltip: { callbacks: { label: (c) => chartMode === 'closing' ? `${c.dataset.label}: ${c.parsed.y}` : `${c.dataset.label || 'Montant'}: ${fmtEUR(c.parsed.y)}` } }
     },
     scales: {
       x: { grid: { display: false }, ticks: { color: '#8a8a93', font: { size: 11 } } },
@@ -1728,7 +1804,7 @@ function renderChart(rows) {
       },
       options: common
     });
-  } else {
+  } else if (chartMode === 'closing') {
     const { created, won, lost } = buildClosingData(rows);
     const datasets = [
       { label: 'Créées',  data: created, backgroundColor: '#b6c2f6', borderRadius: 4 },
@@ -1736,6 +1812,13 @@ function renderChart(rows) {
       { label: 'Perdues', data: lost,    backgroundColor: '#f6a8a8', borderRadius: 4 },
     ];
     chartInstance = new Chart(ctx, { type: 'bar', data: { labels: MONTHS_FR, datasets }, options: common });
+  } else {
+    const keyFn = chartMode === 'source' ? (r => r.source || 'Non renseignée') : (r => r.userId == null ? null : r.userName);
+    const map = {};
+    rows.forEach(r => { const k = keyFn(r); if (k == null) return; map[k] = (map[k] || 0) + r.amount; });
+    const entries = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    const palette = ['#5b6cff','#4ac1c6','#ffb547','#7fd4a0','#f6a8a8','#b6c2f6','#9bd0d6','#c9a0ff','#ffd98a','#9bd7af'];
+    chartInstance = new Chart(ctx, { type: 'bar', data: { labels: entries.map(e => e[0]), datasets: [{ label: 'Montant', data: entries.map(e => e[1]), backgroundColor: entries.map((_, i) => palette[i % palette.length]), borderRadius: 4 }] }, options: common });
   }
 }
 /* ======================== Table ======================== */
@@ -1927,6 +2010,7 @@ function loadData(rows) {
   rawRows = rows;
   selectedUserId = null;
   populateStatusFilter();
+  buildChartMenu();
   renderCommercials();
   updateSubtitle();
   refresh();
@@ -1938,7 +2022,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   periodFilterValue = 0;
   amountFilter = 'all';
   dateFrom = null; dateTo = null;
-  { const df=document.getElementById('dateFrom'), dt=document.getElementById('dateTo'); if(df)df.value=''; if(dt)dt.value=''; }
+  if (typeof dpUpdateTrigger === 'function') dpUpdateTrigger();
   renderCommercials();
   updateSubtitle();
   syncFilterControls();
@@ -1978,30 +2062,103 @@ if (statusTags) statusTags.addEventListener('click', e => {
   toggleStatus(t.dataset.st);
 });
 // Filtre plage de dates (date de création)
-const dateFromEl = document.getElementById('dateFrom');
-const dateToEl = document.getElementById('dateTo');
-function applyDateRange() {
-  dateFrom = (dateFromEl && dateFromEl.value) ? new Date(dateFromEl.value + 'T00:00:00') : null;
-  dateTo   = (dateToEl && dateToEl.value)   ? new Date(dateToEl.value + 'T23:59:59') : null;
-  refresh();
+const DP_MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+let dpViewYear, dpViewMonth;
+function dpFmt(d) { return d ? `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}` : '…'; }
+function dpUpdateTrigger() {
+  const t = document.getElementById('dpTrigger'); if (!t) return;
+  if (dateFrom || dateTo) { t.textContent = `${dpFmt(dateFrom)} → ${dpFmt(dateTo)}`; t.classList.add('active'); }
+  else { t.textContent = 'Toutes les dates'; t.classList.remove('active'); }
 }
-if (dateFromEl) dateFromEl.addEventListener('change', applyDateRange);
-if (dateToEl) dateToEl.addEventListener('change', applyDateRange);
-const dateClearEl = document.getElementById('dateClear');
-if (dateClearEl) dateClearEl.addEventListener('click', () => {
-  if (dateFromEl) dateFromEl.value = '';
-  if (dateToEl) dateToEl.value = '';
-  dateFrom = dateTo = null;
-  refresh();
+function dpRender() {
+  const grid = document.getElementById('dpGrid'); const monthEl = document.getElementById('dpMonth');
+  if (!grid) return;
+  if (dpViewYear == null) { const b = dateFrom || new Date(); dpViewYear = b.getFullYear(); dpViewMonth = b.getMonth(); }
+  monthEl.textContent = `${DP_MONTHS[dpViewMonth]} ${dpViewYear}`;
+  const dayOnly = d => d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : null;
+  const fs = dayOnly(dateFrom), te = dayOnly(dateTo);
+  let html = ['L','M','M','J','V','S','D'].map(d => `<div class="dp-dow">${d}</div>`).join('');
+  const first = new Date(dpViewYear, dpViewMonth, 1);
+  const offset = (first.getDay() + 6) % 7;
+  const nDays = new Date(dpViewYear, dpViewMonth + 1, 0).getDate();
+  for (let i = 0; i < offset; i++) html += '<div class="dp-day empty"></div>';
+  for (let d = 1; d <= nDays; d++) {
+    const t = new Date(dpViewYear, dpViewMonth, d).getTime();
+    let cls = 'dp-day';
+    if (fs != null && t === fs) cls += ' range-start';
+    if (te != null && t === te) cls += ' range-end';
+    if (fs != null && te != null && t > fs && t < te) cls += ' in-range';
+    if (fs != null && te == null && t === fs) cls += ' range-start range-end';
+    html += `<div class="${cls}" data-day="${d}">${d}</div>`;
+  }
+  grid.innerHTML = html;
+}
+const dpTrigger = document.getElementById('dpTrigger');
+const dpPop = document.getElementById('dpPop');
+if (dpTrigger) dpTrigger.addEventListener('click', e => { e.stopPropagation(); dpRender(); dpPop.classList.toggle('open'); });
+document.addEventListener('click', e => { if (dpPop && dpPop.classList.contains('open') && !e.target.closest('.dp')) dpPop.classList.remove('open'); });
+const dpPrev = document.getElementById('dpPrev'), dpNext = document.getElementById('dpNext');
+if (dpPrev) dpPrev.addEventListener('click', () => { dpViewMonth--; if (dpViewMonth < 0) { dpViewMonth = 11; dpViewYear--; } dpRender(); });
+if (dpNext) dpNext.addEventListener('click', () => { dpViewMonth++; if (dpViewMonth > 11) { dpViewMonth = 0; dpViewYear++; } dpRender(); });
+const dpGrid = document.getElementById('dpGrid');
+if (dpGrid) dpGrid.addEventListener('click', e => {
+  const c = e.target.closest('.dp-day[data-day]'); if (!c) return;
+  const clicked = new Date(dpViewYear, dpViewMonth, parseInt(c.dataset.day), 0, 0, 0);
+  if (!dateFrom || (dateFrom && dateTo)) { dateFrom = clicked; dateTo = null; }
+  else {
+    let a = dateFrom, b = clicked;
+    if (b < a) { const tmp = a; a = b; b = tmp; }
+    dateFrom = new Date(a.getFullYear(), a.getMonth(), a.getDate(), 0, 0, 0);
+    dateTo = new Date(b.getFullYear(), b.getMonth(), b.getDate(), 23, 59, 59);
+  }
+  dpRender(); dpUpdateTrigger(); refresh();
+  if (dateFrom && dateTo) setTimeout(() => dpPop.classList.remove('open'), 150);
 });
-document.querySelectorAll('.tab').forEach(t => {
-  t.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-    t.classList.add('active');
-    chartMode = t.dataset.mode;
-    renderChart(applyFilters(rawRows));
-  });
+const dpClear = document.getElementById('dpClear');
+if (dpClear) dpClear.addEventListener('click', () => { dateFrom = dateTo = null; dpRender(); dpUpdateTrigger(); refresh(); });
+function renderChartTabs() {
+  const wrap = document.getElementById('chartTabs');
+  if (!wrap) return;
+  if (!chartViews.includes(chartMode)) chartMode = chartViews[0];
+  wrap.innerHTML = chartViews.map(k => {
+    const v = ALL_VIEWS.find(x => x.key === k);
+    return `<div class="tab${k === chartMode ? ' active' : ''}" data-mode="${k}">${v ? v.label : k}</div>`;
+  }).join('');
+}
+function buildChartMenu() {
+  const menu = document.getElementById('chartMenu');
+  if (!menu) return;
+  const hasSource = rawRows.some(r => r.source);
+  const hasComm = rawRows.some(r => r.userId != null);
+  const avail = { source: hasSource, commercial: hasComm };
+  const opts = ALL_VIEWS.filter(v => !v.fixed).map(v => {
+    const ok = avail[v.key] !== false;
+    const on = chartViews.includes(v.key);
+    const note = ok ? '' : ' <span style="font-size:10px; color:var(--text-faint);">(indisponible)</span>';
+    return `<label class="chart-menu-item" style="${ok ? '' : 'opacity:0.5;'}"><input type="checkbox" data-view="${v.key}" ${on ? 'checked' : ''} ${ok ? '' : 'disabled'}> ${v.label}${note}</label>`;
+  }).join('');
+  menu.innerHTML = `<div class="chart-menu-title">Vues du graphique</div>${opts}<label class="chart-menu-item" style="opacity:0.5;"><input type="checkbox" disabled> Par produit <span style="font-size:10px; color:var(--text-faint);">(donnée indisponible)</span></label>`;
+}
+const chartTabsEl = document.getElementById('chartTabs');
+if (chartTabsEl) chartTabsEl.addEventListener('click', e => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  chartMode = t.dataset.mode;
+  renderChartTabs();
+  renderChart(applyFilters(rawRows));
 });
+const chartGearEl = document.getElementById('chartGear');
+if (chartGearEl) chartGearEl.addEventListener('click', e => { e.stopPropagation(); const m = document.getElementById('chartMenu'); if (m) m.classList.toggle('open'); });
+document.addEventListener('click', e => { const m = document.getElementById('chartMenu'); if (m && m.classList.contains('open') && !e.target.closest('.chart-settings')) m.classList.remove('open'); });
+const chartMenuEl = document.getElementById('chartMenu');
+if (chartMenuEl) chartMenuEl.addEventListener('change', e => {
+  const cb = e.target.closest('input[data-view]'); if (!cb) return;
+  const key = cb.dataset.view;
+  if (cb.checked) { const order = ALL_VIEWS.map(v => v.key); chartViews = order.filter(k => chartViews.includes(k) || k === key); }
+  else { chartViews = chartViews.filter(k => k !== key); }
+  renderChartTabs();
+  renderChart(applyFilters(rawRows));
+});
+renderChartTabs();
 /* ======================== Modal helpers ======================== */
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
