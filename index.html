@@ -1356,14 +1356,15 @@ function escapeHTML(s) {
 /* ======================== State ======================== */
 let rawRows = [];
 let chartInstance = null;
-let chartMode = 'cumul';
+let chartMode = 'created';
 const ALL_VIEWS = [
-  { key: 'cumul', label: 'Cumulé', fixed: true },
-  { key: 'closing', label: 'Closing par mois', fixed: true },
+  { key: 'created', label: 'Pipeline créé', fixed: true },
+  { key: 'won', label: 'CA gagné', fixed: true },
+  { key: 'closing', label: 'Closing par mois' },
   { key: 'source', label: 'Par source' },
   { key: 'commercial', label: 'Par commercial' },
 ];
-let chartViews = ['cumul', 'closing'];
+let chartViews = ['created', 'won'];
 let selectedUserId = null;
 let adminAuthed = false;
 // Filtres (les menus déroulants ont été retirés ; le filtrage par statut
@@ -1793,13 +1794,24 @@ function buildClosingData(rows) {
   });
   return { created, won, lost };
 }
+function monthlyAmount(rows, dateOf, filterFn) {
+  const year = new Date().getFullYear();
+  const arr = Array(12).fill(0);
+  rows.forEach(r => { if (filterFn && !filterFn(r)) return; const d = dateOf(r); if (!d || d.getFullYear() !== year) return; arr[d.getMonth()] += r.amount; });
+  return arr;
+}
 function renderChart(rows) {
-  const { totals } = buildMonthlyData(rows);
   const ctx = document.getElementById('pipelineChart').getContext('2d');
   if (chartInstance) chartInstance.destroy();
   const subEl = document.querySelector('.chart-sub'); const titleEl = document.querySelector('.chart-title');
-  const TITLES = { cumul: ['Pipeline mensuel','Montant des opportunités par date de suivi'], closing: ['Closing par mois','Opportunités créées vs clôturées (gagné/perdu) par mois'], source: ['Répartition par source','Montant des opportunités par source'], commercial: ['Répartition par commercial','Montant des opportunités par commercial'] };
-  const _ttl = TITLES[chartMode] || TITLES.cumul;
+  const TITLES = {
+    created: ['Pipeline créé par mois', 'Montant des opportunités créées par mois (date de création)'],
+    won: ['CA gagné par mois', 'Montant des opportunités gagnées par mois (date de clôture ≈ suivi)'],
+    closing: ['Closing par mois', 'Opportunités créées vs clôturées (gagné/perdu) par mois'],
+    source: ['Répartition par source', 'Montant des opportunités par source'],
+    commercial: ['Répartition par commercial', 'Montant des opportunités par commercial'],
+  };
+  const _ttl = TITLES[chartMode] || TITLES.created;
   if (titleEl) titleEl.textContent = _ttl[0];
   if (subEl) subEl.textContent = _ttl[1];
   const common = {
@@ -1816,18 +1828,14 @@ function renderChart(rows) {
       } }
     }
   };
-  if (chartMode === 'cumul') {
+  if (chartMode === 'created' || chartMode === 'won') {
+    const isWonView = chartMode === 'won';
+    const data = monthlyAmount(rows, isWonView ? (r => parseDateFR(r.followUp)) : (r => parseDateFR(r.createdAt)), isWonView ? (r => r.status === 'Gagné') : null);
+    const col = isWonView ? '#1f9c52' : '#5b6cff';
+    const bg = isWonView ? 'rgba(31,156,82,0.10)' : 'rgba(91,108,255,0.08)';
     chartInstance = new Chart(ctx, {
       type: 'line',
-      data: {
-        labels: MONTHS_FR,
-        datasets: [{
-          label: 'Pipeline', data: totals,
-          borderColor: '#5b6cff', backgroundColor: 'rgba(91,108,255,0.08)',
-          fill: true, tension: 0.35, borderWidth: 2,
-          pointRadius: 3, pointBackgroundColor: '#fff', pointBorderColor: '#5b6cff', pointBorderWidth: 2,
-        }]
-      },
+      data: { labels: MONTHS_FR, datasets: [{ label: isWonView ? 'CA gagné' : 'Pipeline créé', data, borderColor: col, backgroundColor: bg, fill: true, tension: 0.35, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#fff', pointBorderColor: col, pointBorderWidth: 2 }] },
       options: common
     });
   } else if (chartMode === 'closing') {
