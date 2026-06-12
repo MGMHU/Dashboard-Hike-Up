@@ -94,6 +94,15 @@
   }
   .client-nav-logo img, .client-nav-logo svg { width: 100%; height: 100%; object-fit: contain; }
   .client-nav-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cons-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; cursor: pointer; font-size: 12.5px; color: var(--text); }
+  .cons-row:hover { background: #f5f6f8; }
+  .cons-row.active { background: #eef0ff; font-weight: 600; }
+  .cons-toggle { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
+  .cons-toggle svg { transition: transform 0.15s; }
+  .cons-toggle.open svg { transform: rotate(90deg); }
+  .cons-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cons-count { font-size: 10.5px; color: var(--text-faint); background: #f1f2f5; border-radius: 999px; padding: 1px 7px; }
+  .client-nav-item.sub { margin-left: 16px; }
 
   /* État replié (manuel) */
   .sidebar.collapsed { width: 64px; }
@@ -101,6 +110,8 @@
   .sidebar.collapsed .sidebar-user .info,
   .sidebar.collapsed .nav-item span,
   .sidebar.collapsed .client-nav-name,
+  .sidebar.collapsed .cons-name,
+  .sidebar.collapsed .cons-count,
   .sidebar.collapsed .sidebar-section-title,
   .sidebar.collapsed .sidebar-brand .client-logo { display: none; }
   .sidebar.collapsed .sidebar-brand { justify-content: center; padding: 16px 0; }
@@ -1055,20 +1066,20 @@
         <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Client cible pour l'import des données</label>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <select id="adminClientSelect" class="input"
-            style="flex:1; min-width:180px; padding:8px 30px 8px 10px; border:1px solid var(--border-strong); border-radius:8px; font-size:13.5px;"></select>
+            style="flex:1; min-width:180px;"></select>
           <label style="font-size:12.5px; display:flex; align-items:center; gap:6px; white-space:nowrap;">
             <input type="checkbox" id="adminReplace" checked> Remplacer les données existantes
           </label>
         </div>
       </div>
       <div class="tab-bar">
-        <div class="t active" data-atab="file">Importer un fichier</div>
-        <div class="t" data-atab="json">JSON brut</div>
+        <div class="t active" data-atab="json">JSON brut</div>
+        <div class="t" data-atab="file">Importer un fichier</div>
         <div class="t" data-atab="user">Profil</div>
         <div class="t" data-atab="accounts">Comptes &amp; clients</div>
       </div>
       <!-- File tab -->
-      <div class="atab-pane" data-pane="file">
+      <div class="atab-pane" data-pane="file" style="display:none">
         <p style="margin:0 0 10px">Formats acceptés : <strong>JSON</strong> (export Catch-up) ou <strong>CSV</strong> (séparateur <code>;</code>).</p>
         <div style="display:flex; gap:8px; align-items:center;">
           <label class="btn">
@@ -1081,7 +1092,7 @@
         <div id="fileAlert"></div>
       </div>
       <!-- JSON tab -->
-      <div class="atab-pane" data-pane="json" style="display:none">
+      <div class="atab-pane" data-pane="json">
         <div class="field">
           <label>Coller le JSON brut ici</label>
           <textarea class="textarea" id="jsonRaw" placeholder='{"count": 24, "opportunities": [ ... ]}'></textarea>
@@ -1101,6 +1112,10 @@
             <div class="field">
               <label>Nom du client</label>
               <input type="text" class="input" id="newClientName" placeholder="ICS-MTA" maxlength="60">
+            </div>
+            <div class="field">
+              <label>Consultant responsable (optionnel)</label>
+              <input type="text" class="input" id="newClientConsultant" placeholder="Nom du consultant">
             </div>
             <div class="field">
               <label>Photo / logo du client (optionnel)</label>
@@ -1155,6 +1170,10 @@
             <div class="field">
               <label>Nom du client</label>
               <input type="text" class="input" id="editClientName" maxlength="60">
+            </div>
+            <div class="field">
+              <label>Consultant responsable</label>
+              <input type="text" class="input" id="editClientConsultant" placeholder="Nom du consultant">
             </div>
             <div class="field">
               <label>Photo / logo</label>
@@ -1262,6 +1281,8 @@ let currentProfile = null;     // { role, client_id }
 let adminClients = [];         // [{id, name, logo_url}] (admin)
 let adminSelectedClientId = null;   // cible d'import (menu déroulant admin)
 let adminViewClientIds = [];        // clients affichés dans le dashboard (multi-sélection)
+let adminActiveConsultant = null;   // consultant sélectionné (vue agrégée de ses clients)
+let expandedConsultants = {};       // groupes consultant dépliés dans la barre latérale
 let isFullAdmin = false;            // admin principal (non restreint)
 let adminVisibility = {};           // { admin_user_id: [client_id, ...] }
 /* ======================== Embedded JSON (default) ======================== */
@@ -1500,6 +1521,7 @@ function updateSubtitle() {
     sub.textContent = u ? `Opportunités de ${u.name}` : "Suivi du pipeline commercial.";
     return;
   }
+  if (adminActiveConsultant) { sub.textContent = `Clients suivis par ${adminActiveConsultant}`; return; }
   // Admin en vue d'ensemble (tous les clients) → mention "nos clients"
   const isAdmin = currentProfile && currentProfile.role === 'admin';
   const allClients = isAdmin && adminClients.length > 0 && adminViewClientIds.length === adminClients.length;
@@ -2365,17 +2387,19 @@ const newClientBtn = document.getElementById('newClientCreate');
 if (newClientBtn) newClientBtn.addEventListener('click', async () => {
   const box = document.getElementById('newClientAlert');
   const name = document.getElementById('newClientName').value.trim();
+  const consultant = document.getElementById('newClientConsultant').value.trim() || null;
   // priorité à la photo importée depuis l'ordinateur, sinon l'URL
   const logo = newClientLogoData || document.getElementById('newClientLogo').value.trim() || null;
   box.innerHTML = '';
   if (!sb) { box.innerHTML = '<div class="alert error">Supabase non configuré.</div>'; return; }
   if (!name) { box.innerHTML = '<div class="alert error">Le nom du client est requis.</div>'; return; }
   const { data, error } = await sb.from('clients')
-    .insert({ name, logo_url: logo }).select('id, name').single();
+    .insert({ name, logo_url: logo, consultant }).select('id, name').single();
   if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
   await refreshAdminClients();
   document.getElementById('newUserClient').value = data.id;
   document.getElementById('newClientName').value = '';
+  document.getElementById('newClientConsultant').value = '';
   document.getElementById('newClientLogo').value = '';
   newClientLogoData = null;
   if (newClientLogoFile) newClientLogoFile.value = '';
@@ -2417,6 +2441,7 @@ if (editClientSaveEl) editClientSaveEl.addEventListener('click', async () => {
   box.innerHTML = '';
   const id = document.getElementById('editClientSelect').value;
   const name = document.getElementById('editClientName').value.trim();
+  const consultant = document.getElementById('editClientConsultant').value.trim() || null;
   const urlVal = document.getElementById('editClientLogo').value.trim();
   if (!sb) { box.innerHTML = '<div class="alert error">Supabase non configuré.</div>'; return; }
   if (!id) { box.innerHTML = '<div class="alert error">Sélectionnez un client.</div>'; return; }
@@ -2426,7 +2451,7 @@ if (editClientSaveEl) editClientSaveEl.addEventListener('click', async () => {
   if (editClientLogoTouched) logo = editClientLogoData;     // fichier choisi, ou null si retiré
   else if (urlVal) logo = urlVal;                            // URL saisie
   else logo = current ? (current.logo_url ?? null) : null;   // inchangé
-  const { error } = await sb.from('clients').update({ name, logo_url: logo }).eq('id', id);
+  const { error } = await sb.from('clients').update({ name, logo_url: logo, consultant }).eq('id', id);
   if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
   await refreshAdminClients();
   document.getElementById('editClientSelect').value = id;
@@ -2812,6 +2837,8 @@ async function doLogout() {
   adminSelectedClientId = null;
   adminViewClientIds = [];
   adminClients = [];
+  adminActiveConsultant = null;
+  expandedConsultants = {};
   isFullAdmin = false;
   adminVisibility = {};
   rawRows = [];
@@ -2877,6 +2904,8 @@ function setupRoleUI() {
   if (!isAdmin) {
     adminClients = [];
     adminViewClientIds = [];
+    adminActiveConsultant = null;
+    expandedConsultants = {};
     isFullAdmin = false;
     adminVisibility = {};
     const cn = document.getElementById('clientNav');
@@ -2920,13 +2949,14 @@ function loadEditClientFields() {
   const prev  = document.getElementById('editClientLogoPreview');
   const fileI = document.getElementById('editClientLogoFile');
   if (nameI) nameI.value = c ? c.name : '';
+  { const consI = document.getElementById('editClientConsultant'); if (consI) consI.value = (c && c.consultant) ? c.consultant : ''; }
   if (urlI)  urlI.value = '';
   if (fileI) fileI.value = '';
   if (prev)  prev.innerHTML = (c && c.logo_url) ? `<img src="${c.logo_url}" alt="Logo" style="width:100%;height:100%;object-fit:contain;">` : '';
 }
 // Recharge la liste des clients depuis Supabase et rafraîchit les sélecteurs
 async function refreshAdminClients() {
-  const { data } = await sb.from('clients').select('id, name, logo_url').order('name');
+  const { data } = await sb.from('clients').select('id, name, logo_url, consultant').order('name');
   adminClients = data || [];
   populateAdminClientSelect();
   renderClientNav();
@@ -2935,7 +2965,7 @@ async function loadFromSupabase() {
   const isAdmin = currentProfile && currentProfile.role === 'admin';
   if (isAdmin) {
     // Liste des clients
-    const { data: clients } = await sb.from('clients').select('id, name, logo_url').order('name');
+    const { data: clients } = await sb.from('clients').select('id, name, logo_url, consultant').order('name');
     adminClients = clients || [];
     if (!adminSelectedClientId && adminClients.length) adminSelectedClientId = adminClients[0].id;
     // Vue par défaut : tous les clients ; purge les ids obsolètes
@@ -2975,6 +3005,13 @@ function setReportTitle(t) {
 }
 
 function applyViewBranding() {
+  // Consultant sélectionné → vue agrégée de ses clients
+  if (adminActiveConsultant) {
+    applyClientName(adminActiveConsultant);
+    const m = document.getElementById('clientLogo'); if (m) m.innerHTML = '';
+    setReportTitle(adminActiveConsultant);
+    return;
+  }
   // Un seul client sélectionné → sa marque (nom + logo) ET titre du rapport = nom du client
   if (adminViewClientIds.length === 1) {
     const c = adminClients.find(x => x.id === adminViewClientIds[0]);
@@ -2997,16 +3034,32 @@ function renderClientNav() {
   if (!isAdmin) { wrap.style.display = 'none'; return; }
   wrap.style.display = '';
   // "Vue d'ensemble" = mode "tous les clients"
-  const allOn = adminClients.length > 0 && adminViewClientIds.length === adminClients.length;
+  const allOn = adminClients.length > 0 && adminViewClientIds.length === adminClients.length && !adminActiveConsultant;
   if (overview) overview.classList.toggle('active', allOn);
+  const groups = {};
+  adminClients.forEach(c => { const k = c.consultant || 'Sans consultant'; (groups[k] = groups[k] || []).push(c); });
+  const names = Object.keys(groups).sort((a, b) => a.localeCompare(b, 'fr'));
+  const chev = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>';
   let html = '';
-  adminClients.forEach(c => {
-    const on = !allOn && adminViewClientIds.includes(c.id);
-    const logo = c.logo_url ? `<img src="${c.logo_url}" alt="">` : CLIENT_LOGO_DEFAULT;
-    html += `<div class="client-nav-item${on ? ' active' : ''}" data-id="${c.id}" title="${escapeHTML(c.name)} — Ctrl/Cmd+clic pour multi-sélection">
-      <span class="client-nav-logo">${logo}</span>
-      <span class="client-nav-name">${escapeHTML(c.name)}</span>
+  names.forEach(name => {
+    const clients = groups[name];
+    const isActiveCons = adminActiveConsultant === name;
+    const expanded = !!expandedConsultants[name] || isActiveCons;
+    html += `<div class="cons-row${isActiveCons ? ' active' : ''}" data-cons="${escapeHTML(name)}">
+      <span class="cons-toggle${expanded ? ' open' : ''}" data-constoggle="${escapeHTML(name)}">${chev}</span>
+      <span class="cons-name" title="Voir les clients de ${escapeHTML(name)}">${escapeHTML(name)}</span>
+      <span class="cons-count">${clients.length}</span>
     </div>`;
+    if (expanded) {
+      clients.forEach(c => {
+        const on = !adminActiveConsultant && !allOn && adminViewClientIds.includes(c.id);
+        const logo = c.logo_url ? `<img src="${c.logo_url}" alt="">` : CLIENT_LOGO_DEFAULT;
+        html += `<div class="client-nav-item sub${on ? ' active' : ''}" data-id="${c.id}" title="${escapeHTML(c.name)} — Ctrl/Cmd+clic pour multi-sélection">
+          <span class="client-nav-logo">${logo}</span>
+          <span class="client-nav-name">${escapeHTML(c.name)}</span>
+        </div>`;
+      });
+    }
   });
   list.innerHTML = html;
 }
@@ -3090,6 +3143,7 @@ async function initApp() {
   if (overviewBtn) overviewBtn.addEventListener('click', async () => {
     if (!(currentProfile && currentProfile.role === 'admin')) return;
     adminViewClientIds = adminClients.map(c => c.id);
+    adminActiveConsultant = null;
     resetDashboardFilters();
     renderClientNav();
     await loadAdminView();
@@ -3098,18 +3152,30 @@ async function initApp() {
   // Barre latérale : sélection multiple des clients à afficher
   const navList = document.getElementById('clientNavList');
   if (navList) navList.addEventListener('click', async (e) => {
+    const tog = e.target.closest('[data-constoggle]');
+    if (tog) { const n = tog.dataset.constoggle; expandedConsultants[n] = !expandedConsultants[n]; renderClientNav(); return; }
+    const consRow = e.target.closest('.cons-row');
+    if (consRow && !e.target.closest('.client-nav-item')) {
+      const name = consRow.dataset.cons;
+      adminActiveConsultant = name;
+      adminViewClientIds = adminClients.filter(c => (c.consultant || 'Sans consultant') === name).map(c => c.id);
+      expandedConsultants[name] = true;
+      resetDashboardFilters();
+      renderClientNav();
+      await loadAdminView();
+      return;
+    }
     const item = e.target.closest('.client-nav-item');
     if (!item) return;
     const id = item.dataset.id;
+    adminActiveConsultant = null;
     if (e.metaKey || e.ctrlKey) {
-      // Ctrl/Cmd + clic : multi-sélection (ajouter / retirer)
       const allOn = adminViewClientIds.length === adminClients.length;
       let base = allOn ? [] : adminViewClientIds.slice();
       if (base.includes(id)) base = base.filter(x => x !== id);
       else base.push(id);
       adminViewClientIds = base.length ? base : [id];
     } else {
-      // Clic simple : ce client uniquement
       adminViewClientIds = [id];
     }
     resetDashboardFilters();
