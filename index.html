@@ -55,7 +55,7 @@
     border-bottom: 1px solid var(--border);
   }
   .sidebar-brand .brand-name { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
-  .sidebar-nav { padding: 14px 10px; flex: 1; }
+  .sidebar-nav { padding: 14px 10px; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
   .nav-item {
     display: flex; align-items: center; gap: 10px;
     padding: 9px 12px; border-radius: 8px;
@@ -79,7 +79,7 @@
     font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
     color: var(--text-faint); padding: 10px 12px 4px; font-weight: 600;
   }
-  #clientNavList { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+  #clientNavList { display: flex; flex-direction: column; gap: 2px; }
   .client-nav-item {
     display: flex; align-items: center; gap: 10px;
     padding: 6px 10px; border-radius: 8px; cursor: pointer; user-select: none;
@@ -3157,9 +3157,14 @@ async function initApp() {
     const consRow = e.target.closest('.cons-row');
     if (consRow && !e.target.closest('.client-nav-item')) {
       const name = consRow.dataset.cons;
-      adminActiveConsultant = name;
-      adminViewClientIds = adminClients.filter(c => (c.consultant || 'Sans consultant') === name).map(c => c.id);
-      expandedConsultants[name] = true;
+      if (adminActiveConsultant === name) {
+        adminActiveConsultant = null;
+        adminViewClientIds = adminClients.map(c => c.id);
+      } else {
+        adminActiveConsultant = name;
+        adminViewClientIds = adminClients.filter(c => (c.consultant || 'Sans consultant') === name).map(c => c.id);
+        expandedConsultants[name] = true;
+      }
       resetDashboardFilters();
       renderClientNav();
       await loadAdminView();
@@ -3168,6 +3173,7 @@ async function initApp() {
     const item = e.target.closest('.client-nav-item');
     if (!item) return;
     const id = item.dataset.id;
+    const wasSingle = !adminActiveConsultant && adminViewClientIds.length === 1 && adminViewClientIds[0] === id;
     adminActiveConsultant = null;
     if (e.metaKey || e.ctrlKey) {
       const allOn = adminViewClientIds.length === adminClients.length;
@@ -3176,7 +3182,7 @@ async function initApp() {
       else base.push(id);
       adminViewClientIds = base.length ? base : [id];
     } else {
-      adminViewClientIds = [id];
+      adminViewClientIds = wasSingle ? adminClients.map(c => c.id) : [id];
     }
     resetDashboardFilters();
     renderClientNav();
