@@ -1187,7 +1187,8 @@
             </div>
             <div class="field">
               <label>Consultant responsable (optionnel)</label>
-              <input type="text" class="input" id="newClientConsultant" placeholder="Nom du consultant" list="consultantList">
+              <select id="newClientConsultant" class="input"><option value="">— Aucun —</option></select>
+              <div class="muted" style="font-size:11.5px; margin-top:6px;">Créez d'abord vos consultants dans la section <strong>3. Consultants</strong> pour les retrouver ici.</div>
             </div>
             <div class="field">
               <label>Photo / logo du client (optionnel)</label>
@@ -1208,7 +1209,7 @@
         </div>
 
         <div class="acc">
-          <button class="acc-head" type="button"><span>2. Créer un accès de connexion</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <button class="acc-head" type="button"><span>2. Créer un accès (utilisateur)</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="acc-body">
             <div class="field">
               <label>Client concerné</label>
@@ -1233,43 +1234,9 @@
         </div>
 
         <div class="acc">
-          <button class="acc-head" type="button"><span>3. Modifier un client existant</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <button class="acc-head" type="button"><span>3. Consultants</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="acc-body">
-            <div class="field">
-              <label>Client à modifier</label>
-              <select id="editClientSelect" class="input"></select>
-            </div>
-            <div class="field">
-              <label>Nom du client</label>
-              <input type="text" class="input" id="editClientName" maxlength="60">
-            </div>
-            <div class="field">
-              <label>Consultant responsable</label>
-              <input type="text" class="input" id="editClientConsultant" placeholder="Nom du consultant" list="consultantList">
-            <datalist id="consultantList"></datalist>
-            </div>
-            <div class="field">
-              <label>Photo / logo</label>
-              <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
-                <div class="client-logo" id="editClientLogoPreview" style="width:54px; height:54px; border:1px solid var(--border-strong);"></div>
-                <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir une photo<input type="file" id="editClientLogoFile" accept="image/*" style="display:none"></label>
-                <button class="btn secondary" id="editClientLogoClear" type="button">Retirer le logo</button>
-              </div>
-              <div class="muted" style="font-size:11.5px; margin-top:6px;">Depuis votre ordinateur, ou collez une URL ci-dessous.</div>
-            </div>
-            <div class="field">
-              <label>… ou URL du logo</label>
-              <input type="text" class="input" id="editClientLogo" placeholder="https://…/logo.png">
-            </div>
-            <div id="editClientAlert"></div>
-            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="editClientSave">Enregistrer les modifications</button></div>
-          </div>
-        </div>
-
-        <div class="acc">
-          <button class="acc-head" type="button"><span>Consultants</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="acc-body">
-            <p class="muted" style="font-size:12px; margin:0 0 12px;">Créez vos consultants et leur photo, puis assignez-les aux clients via « Consultant responsable ».</p>
+            <p class="muted" style="font-size:12px; margin:0 0 12px;">Créez vos consultants et leur photo, puis associez-les aux clients à l'étape 1 (ou via « Modifier un client »).</p>
             <div class="field"><label>Nom du consultant</label><input type="text" class="input" id="newConsName" placeholder="Prénom Nom"></div>
             <div class="field">
               <label>Photo (optionnel)</label>
@@ -1298,7 +1265,40 @@
         </div>
 
         <div class="acc">
-          <button class="acc-head" type="button"><span>4. Comptes existants</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <button class="acc-head" type="button"><span>4. Modifier un client existant</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="acc-body">
+            <div class="field">
+              <label>Client à modifier</label>
+              <select id="editClientSelect" class="input"></select>
+            </div>
+            <div class="field">
+              <label>Nom du client</label>
+              <input type="text" class="input" id="editClientName" maxlength="60">
+            </div>
+            <div class="field">
+              <label>Consultant responsable</label>
+              <select id="editClientConsultant" class="input"><option value="">— Aucun —</option></select>
+            </div>
+            <div class="field">
+              <label>Photo / logo</label>
+              <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
+                <div class="client-logo" id="editClientLogoPreview" style="width:54px; height:54px; border:1px solid var(--border-strong);"></div>
+                <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir une photo<input type="file" id="editClientLogoFile" accept="image/*" style="display:none"></label>
+                <button class="btn secondary" id="editClientLogoClear" type="button">Retirer le logo</button>
+              </div>
+              <div class="muted" style="font-size:11.5px; margin-top:6px;">Depuis votre ordinateur, ou collez une URL ci-dessous.</div>
+            </div>
+            <div class="field">
+              <label>… ou URL du logo</label>
+              <input type="text" class="input" id="editClientLogo" placeholder="https://…/logo.png">
+            </div>
+            <div id="editClientAlert"></div>
+            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="editClientSave">Enregistrer les modifications</button></div>
+          </div>
+        </div>
+
+        <div class="acc">
+          <button class="acc-head" type="button"><span>5. Comptes existants</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="acc-body">
             <div style="display:flex; justify-content:flex-end; margin-bottom:10px;"><button class="btn secondary" id="usersRefresh" type="button" style="font-size:12px; padding:6px 10px;">Rafraîchir</button></div>
             <div id="usersList" class="muted" style="font-size:12.5px;">Chargement…</div>
@@ -1306,7 +1306,7 @@
         </div>
 
         <div class="acc">
-          <button class="acc-head" type="button"><span>5. Réinitialiser les données d'un client</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <button class="acc-head" type="button"><span>6. Réinitialiser les données d'un client</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="acc-body">
             <p class="muted" style="font-size:12px; margin:0 0 10px;">Supprime <strong>toutes</strong> les opportunités importées pour le client choisi (utile si des données ont été envoyées au mauvais client). Action irréversible.</p>
             <div class="field">
@@ -2776,6 +2776,12 @@ async function loadConsultants() {
   if (dl) dl.innerHTML = allNames.map(n => `<option value="${escapeHTML(n)}"></option>`).join('');
   const es = document.getElementById('editConsSelect');
   if (es) { const keep = es.value; es.innerHTML = '<option value="">— choisir —</option>' + allNames.map(n => `<option value="${escapeHTML(n)}">${escapeHTML(n)}${adminConsultants[n] ? '' : ' (sans fiche)'}</option>`).join(''); es.value = keep; }
+  // Sélecteurs « Consultant responsable » dans Créer / Modifier un client
+  const consOpts = '<option value="">— Aucun —</option>' + allNames.map(n => `<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join('');
+  ['newClientConsultant', 'editClientConsultant'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) { const keep = sel.value; sel.innerHTML = consOpts; sel.value = keep; }
+  });
 }
 let newConsPhotoData = null, editConsPhotoData = null, editConsPhotoTouched = false;
 function _consReadImg(input, cb) { const f = input.files[0]; if (!f) return; const r = new FileReader(); r.onload = e => cb(e.target.result); r.readAsDataURL(f); }
