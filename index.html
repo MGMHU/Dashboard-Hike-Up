@@ -202,6 +202,7 @@
   .ftag:hover { background: #f7f7fa; }
   .ftag.active { background: #1a1a1f; color: #fff; border-color: #1a1a1f; }
   .ftag .ftag-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .date-input { width: auto; padding: 6px 10px; font-size: 12.5px; }
   .chip {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 2px 9px 2px 2px;
@@ -849,6 +850,13 @@
             <span class="filter-label">Statut</span>
             <div class="ftags" id="statusTags"></div>
           </div>
+          <div class="filter-group">
+            <span class="filter-label">Création</span>
+            <input type="date" id="dateFrom" class="input date-input">
+            <span style="color:var(--text-faint); font-size:13px;">&rarr;</span>
+            <input type="date" id="dateTo" class="input date-input">
+            <button class="ftag" id="dateClear" type="button" title="Effacer les dates">✕</button>
+          </div>
         </div>
 
         <!-- Alertes (tags) -->
@@ -916,7 +924,7 @@
           </div>
           <div class="tabs">
             <div class="tab active" data-mode="cumul">Cumulé</div>
-            <div class="tab" data-mode="statut">Par statut</div>
+            <div class="tab" data-mode="closing">Closing par mois</div>
           </div>
         </div>
         <div class="chart-wrap"><canvas id="pipelineChart"></canvas></div>
@@ -1218,10 +1226,10 @@ const STATUS_COLOR = {
   "Perdu": "#f6a8a8",
 };
 const STATUS_ORDER = [
-  "En attente/à relancer",
-  "Devis/Offre envoyé",
   "Nouveau",
   "Rendez-vous prévu",
+  "Devis/Offre envoyé",
+  "En attente/à relancer",
   "Gagné",
   "Perdu",
 ];
@@ -1261,6 +1269,7 @@ let adminAuthed = false;
 let statusFilterSet = [];   // statuts cochés (multi). Vide = tous.
 let periodFilterValue = 0;
 let amountFilter = 'all';   // all | with | without
+let dateFrom = null, dateTo = null;   // plage sur la date de création
 let activeAlertKey = null;
 /* ======================== Normalize input ======================== */
 function normalizeFromJSON(data) {
@@ -1325,6 +1334,8 @@ function applyFilters(rows, opts = {}) {
   }
   if (amountFilter === 'with') r = r.filter(x => x.amount > 0);
   else if (amountFilter === 'without') r = r.filter(x => x.amount === 0);
+  if (dateFrom) r = r.filter(x => { const d = parseDateFR(x.createdAt); return d && d >= dateFrom; });
+  if (dateTo)   r = r.filter(x => { const d = parseDateFR(x.createdAt); return d && d <= dateTo; });
   if (months > 0) {
     const now = new Date();
     const cutoff = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
@@ -1470,6 +1481,14 @@ function applyAlertFilter(rows) {
   return rows.filter(ALERT_PREDICATES[activeAlertKey]);
 }
 /* ======================== KPI ======================== */
+function trendArrow(cur, prev) {
+  if (cur === prev) return '<span style="color:var(--text-faint);">→ stable</span>';
+  const up = cur > prev;
+  const color = up ? '#1f9c52' : '#c0392b';
+  const sym = up ? '▲' : '▼';
+  const pct = prev > 0 ? Math.round(Math.abs(cur - prev) / prev * 100) : 100;
+  return `<span style="color:${color}; font-weight:600;">${sym} ${pct}%</span>`;
+}
 function renderKPIs(rows) {
   const isWon  = r => r.status === 'Gagné';
   const isLost = r => r.status === 'Perdu';
@@ -1522,7 +1541,7 @@ function renderKPIs(rows) {
   document.getElementById('kpiWinDevis').innerHTML = `${winDevis.toFixed(1)} <small>%</small>${subKpi(`${won.length} / ${devisReached.length} devis`)}`;
   document.getElementById('kpiCycle').innerHTML    = avgCycle != null ? `${avgCycle} <small>j</small>` : '<span class="muted">—</span>';
   document.getElementById('kpiAge').innerHTML      = (avgAge != null ? `${avgAge} <small>j</small>` : '<span class="muted">—</span>') + subKpi(`${dormantPct}% dormantes (>21 j)`);
-  document.getElementById('kpiNew').innerHTML      = `${new30}${subKpi(`30 j préc. : ${prev30}`)}`;
+  document.getElementById('kpiNew').innerHTML      = `${new30}${subKpi(`${trendArrow(new30, prev30)} · 30 j préc. : ${prev30}`)}`;
   document.getElementById('kpiDevis').innerHTML    = `${devisList.length}${subKpi(fmtEUR(devisAmt))}`;
 }
 
@@ -1633,15 +1652,31 @@ function buildMonthlyData(rows) {
   });
   return { totals, byStatus, year };
 }
+function buildClosingData(rows) {
+  const year = new Date().getFullYear();
+  const created = Array(12).fill(0), won = Array(12).fill(0), lost = Array(12).fill(0);
+  rows.forEach(r => {
+    const dc = parseDateFR(r.createdAt);
+    if (dc && dc.getFullYear() === year) created[dc.getMonth()]++;
+    if (r.status === 'Gagné' || r.status === 'Perdu') {
+      const dd = parseDateFR(r.followUp);
+      if (dd && dd.getFullYear() === year) { if (r.status === 'Gagné') won[dd.getMonth()]++; else lost[dd.getMonth()]++; }
+    }
+  });
+  return { created, won, lost };
+}
 function renderChart(rows) {
-  const { totals, byStatus } = buildMonthlyData(rows);
+  const { totals } = buildMonthlyData(rows);
   const ctx = document.getElementById('pipelineChart').getContext('2d');
   if (chartInstance) chartInstance.destroy();
+  const subEl = document.querySelector('.chart-sub'); const titleEl = document.querySelector('.chart-title');
+  if (titleEl) titleEl.textContent = chartMode === 'cumul' ? 'Pipeline mensuel' : 'Closing par mois';
+  if (subEl) subEl.textContent = chartMode === 'cumul' ? 'Montant des opportunités par date de suivi' : 'Opportunités créées vs clôturées (gagné/perdu) par mois';
   const common = {
     responsive: true, maintainAspectRatio: false,
     plugins: {
-      legend: { display: chartMode === 'statut', position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
-      tooltip: { callbacks: { label: (c) => `${c.dataset.label || 'Pipeline'}: ${fmtEUR(c.parsed.y)}` } }
+      legend: { display: chartMode !== 'cumul', position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
+      tooltip: { callbacks: { label: (c) => chartMode === 'cumul' ? `${c.dataset.label || 'Pipeline'}: ${fmtEUR(c.parsed.y)}` : `${c.dataset.label}: ${c.parsed.y}` } }
     },
     scales: {
       x: { grid: { display: false }, ticks: { color: '#8a8a93', font: { size: 11 } } },
@@ -1666,17 +1701,13 @@ function renderChart(rows) {
       options: common
     });
   } else {
-    const datasets = STATUS_ORDER.filter(s => byStatus[s].some(v => v > 0)).map(s => ({
-      label: s, data: byStatus[s], backgroundColor: STATUS_COLOR[s], borderRadius: 4, stack: 'a',
-    }));
-    chartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: { labels: MONTHS_FR, datasets },
-      options: { ...common, scales: { ...common.scales,
-        x: { ...common.scales.x, stacked: true },
-        y: { ...common.scales.y, stacked: true }
-      } }
-    });
+    const { created, won, lost } = buildClosingData(rows);
+    const datasets = [
+      { label: 'Créées',  data: created, backgroundColor: '#b6c2f6', borderRadius: 4 },
+      { label: 'Gagnées', data: won,     backgroundColor: '#7fd4a0', borderRadius: 4 },
+      { label: 'Perdues', data: lost,    backgroundColor: '#f6a8a8', borderRadius: 4 },
+    ];
+    chartInstance = new Chart(ctx, { type: 'bar', data: { labels: MONTHS_FR, datasets }, options: common });
   }
 }
 /* ======================== Table ======================== */
@@ -1878,6 +1909,8 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   statusFilterSet = [];
   periodFilterValue = 0;
   amountFilter = 'all';
+  dateFrom = null; dateTo = null;
+  { const df=document.getElementById('dateFrom'), dt=document.getElementById('dateTo'); if(df)df.value=''; if(dt)dt.value=''; }
   renderCommercials();
   updateSubtitle();
   syncFilterControls();
@@ -1915,6 +1948,23 @@ const statusTags = document.getElementById('statusTags');
 if (statusTags) statusTags.addEventListener('click', e => {
   const t = e.target.closest('.ftag'); if (!t) return;
   toggleStatus(t.dataset.st);
+});
+// Filtre plage de dates (date de création)
+const dateFromEl = document.getElementById('dateFrom');
+const dateToEl = document.getElementById('dateTo');
+function applyDateRange() {
+  dateFrom = (dateFromEl && dateFromEl.value) ? new Date(dateFromEl.value + 'T00:00:00') : null;
+  dateTo   = (dateToEl && dateToEl.value)   ? new Date(dateToEl.value + 'T23:59:59') : null;
+  refresh();
+}
+if (dateFromEl) dateFromEl.addEventListener('change', applyDateRange);
+if (dateToEl) dateToEl.addEventListener('change', applyDateRange);
+const dateClearEl = document.getElementById('dateClear');
+if (dateClearEl) dateClearEl.addEventListener('click', () => {
+  if (dateFromEl) dateFromEl.value = '';
+  if (dateToEl) dateToEl.value = '';
+  dateFrom = dateTo = null;
+  refresh();
 });
 document.querySelectorAll('.tab').forEach(t => {
   t.addEventListener('click', () => {
