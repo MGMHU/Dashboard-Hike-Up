@@ -3242,7 +3242,6 @@ function renderClientNav() {
     const isActiveCons = adminActiveConsultant === name;
     const expanded = !!expandedConsultants[name] || isActiveCons;
     html += `<div class="cons-row${isActiveCons ? ' active' : ''}" data-cons="${escapeHTML(name)}">
-      <span class="cons-toggle${expanded ? ' open' : ''}" data-constoggle="${escapeHTML(name)}">${chev}</span>
       <span class="cons-pic">${consultantPic(name)}</span>
       <span class="cons-name" title="Voir les clients de ${escapeHTML(name)}">${escapeHTML(name)}</span>
       <span class="cons-count">${clients.length}</span>
