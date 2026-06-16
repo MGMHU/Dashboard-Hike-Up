@@ -102,7 +102,9 @@
   .cons-toggle.open svg { transform: rotate(90deg); }
   .cons-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cons-count { font-size: 10.5px; color: var(--text-faint); background: #f1f2f5; border-radius: 999px; padding: 1px 7px; }
-  .client-nav-item.sub { margin-left: 16px; }
+  .client-nav-item.sub { margin-left: 11px; padding-left: 12px; border-left: 2px solid var(--border); border-top-left-radius: 0; border-bottom-left-radius: 0; }
+  .client-nav-item.sub:hover { border-left-color: var(--border-strong); }
+  .client-nav-item.sub.active { border-left-color: var(--accent, #5b6bff); }
   .cons-pic { width: 22px; height: 22px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: #eef0ff; border: 1px solid var(--border-strong); display: inline-flex; align-items: center; justify-content: center; }
   .cons-pic img { width: 100%; height: 100%; object-fit: cover; }
   .cons-init { font-size: 9px; font-weight: 600; color: #1a1a1f; }
@@ -1526,7 +1528,7 @@ function normalizeFromJSON(data) {
       contact: o.fullName || '',
       amount: parseFloat(o.amount || '0') || 0,
       percentage: parseFloat(o.percentage || '0') || 0,
-      status: o.opportunity_status || o.statut || '',
+      status: normalizeStatus(o.opportunity_status || o.statut || ''),
       followUp: o.updated_at || '',
       createdAt: o.created_at || '',
       userId: o.user_id,
@@ -1556,7 +1558,7 @@ function normalizeFromCSV(text) {
       contact: row['Nom du contact'] || '',
       amount: parseFloat(row['Montant'] || '0') || 0,
       percentage: parseFloat(row['Pourcentage'] || '0') || 0,
-      status: row['Statut'] || '',
+      status: normalizeStatus(row['Statut'] || ''),
       followUp: row['Date de suivi'] || '',
       createdAt: '',
       userId: null,
@@ -2204,7 +2206,35 @@ function refresh() {
   renderTable(finalRows);
   syncFilterControls();
 }
+// Synonymes de statut « gagné / perdu » (anglais, casse, variantes FR) ramenés
+// au statut canonique. Les autres statuts sont laissés tels quels.
+// Synonymes explicites (clé = libellé normalisé : sans accent, minuscule,
+// tirets/underscores -> espaces). Sert d'abord ; sinon on tente la détection
+// par mots-clés ci-dessous. Tout statut non reconnu garde son libellé d'origine.
+const STATUS_ALIASES = {
+  "lost": "Perdu", "closed lost": "Perdu", "closedlost": "Perdu",
+  "won": "Gagné", "closed won": "Gagné", "closedwon": "Gagné",
+  "new": "Nouveau", "nouvelle": "Nouveau", "lead": "Nouveau",
+};
+function stripAccents(s) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function normalizeStatus(s) {
+  const raw = (s == null ? '' : String(s)).trim();
+  if (!raw) return raw;
+  // clé normalisée : accents retirés, minuscules, séparateurs unifiés
+  const key = stripAccents(raw).toLowerCase().replace(/[-_/]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (STATUS_ALIASES[key]) return STATUS_ALIASES[key];
+  // détection par mots-clés : reconnaît n'importe quelle variante gagné/perdu
+  if (/\b(gagn|won|win|sign)/.test(key)) return 'Gagné';
+  if (/\b(perd|lost|refus|annul|cancel|abandon|decline|declin)/.test(key)) return 'Perdu';
+  // devis/offre envoyé(e) : « Offre envoyée », « Devis envoyé »… -> colonne devis.
+  // On exige « envoy » pour ne PAS capturer « Relance devis » ni « Préparation du devis ».
+  if (/(offre|devis|quote|proposal)/.test(key) && /(envoy|sent|send|emis|transmis)/.test(key)) return 'Devis/Offre envoyé';
+  return raw; // libellé inconnu conservé tel quel (colonne kanban dédiée)
+}
 function loadData(rows) {
+  rows = (rows || []).map(r => (r && r.status != null) ? { ...r, status: normalizeStatus(r.status) } : r);
   rawRows = rows;
   selectedUserId = null;
   populateStatusFilter();
@@ -3403,13 +3433,17 @@ async function initApp() {
     const consRow = e.target.closest('.cons-row');
     if (consRow && !e.target.closest('.client-nav-item')) {
       const name = consRow.dataset.cons;
-      if (adminActiveConsultant === name) {
+      const isOpen = !!expandedConsultants[name] || adminActiveConsultant === name;
+      if (isOpen) {
+        // 2e clic : on referme le déploiement et on revient à tous les clients
+        expandedConsultants[name] = false;
         adminActiveConsultant = null;
         adminViewClientIds = adminClients.map(c => c.id);
       } else {
+        // 1er clic : on déploie les clients de ce consultant
+        expandedConsultants[name] = true;
         adminActiveConsultant = name;
         adminViewClientIds = adminClients.filter(c => (c.consultant || 'Sans consultant') === name).map(c => c.id);
-        expandedConsultants[name] = true;
       }
       resetDashboardFilters();
       renderClientNav();
