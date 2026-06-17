@@ -206,6 +206,15 @@
 
   /* Série de filtres — tags uniformes */
   .filter-bar { display: flex; flex-direction: column; gap: 11px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .today-recap { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; margin: 2px 2px 14px; font-size: 11.5px; color: var(--text-faint); }
+  .today-recap:empty { display: none; }
+  .today-recap .tr-label { font: inherit; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; font-size: 10.5px; cursor: pointer; border: 1px solid transparent; background: transparent; padding: 2px 8px; border-radius: 999px; transition: background .15s, color .15s, border-color .15s; }
+  .today-recap .tr-label:hover { background: #f1f2f5; border-color: var(--border); }
+  .today-recap .tr-label.active { background: var(--accent, #5b6cff); color: #fff; border-color: var(--accent, #5b6cff); }
+  .today-recap .tr-item b { color: var(--text); font-weight: 600; }
+  .today-recap .tr-sep { opacity: .35; }
+  .today-recap .tr-won { color: var(--ok, #1f9d57); }
+  .today-recap .tr-lost { color: var(--danger, #d33b46); }
   .filter-group { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
   .filter-label { font-size: 12px; color: var(--text-faint); min-width: 58px; padding-top: 6px; }
   .ftags { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -592,6 +601,25 @@
   .acc.open .acc-chev { transform: rotate(180deg); }
   .acc-body { padding: 2px 14px 14px; display: none; }
   .acc.open .acc-body { display: block; }
+  .cap-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px; background: var(--accent-soft); border-radius: 10px; }
+  .cap-label { font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .cap-chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 160px; }
+  .cap-chip { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: 12.5px; font-weight: 600; color: var(--text); cursor: pointer; background: #fff; border: 1px solid var(--border-strong); border-radius: 999px; padding: 5px 12px 5px 6px; transition: background .15s, border-color .15s, color .15s, box-shadow .15s; }
+  .cap-chip:hover { border-color: var(--accent, #5b6cff); }
+  .cap-chip.active { background: var(--accent, #5b6cff); color: #fff; border-color: var(--accent, #5b6cff); box-shadow: 0 2px 8px rgba(91,108,255,.35); }
+  .cap-chip-logo { width: 22px; height: 22px; border-radius: 50%; overflow: hidden; background: #fff; border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .cap-chip-logo img { width: 100%; height: 100%; object-fit: contain; }
+  .cap-chip.active .cap-chip-logo { border-color: rgba(255,255,255,.6); }
+  .cap-ctx-head { font-size: 13.5px; font-weight: 700; color: var(--text); margin: 16px 2px 10px; padding-bottom: 8px; border-bottom: 2px solid var(--accent, #5b6cff); }
+  .logs-wrap { overflow-x: auto; max-height: 360px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+  .logs-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .logs-table th, .logs-table td { text-align: left; padding: 6px 9px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .logs-table thead th { position: sticky; top: 0; background: #fafafb; color: var(--text-muted); font-weight: 600; z-index: 1; }
+  .logs-table tbody tr:hover { background: #fafafb; }
+  .logs-table tbody tr:last-child td { border-bottom: none; }
+  .log-ev { display: inline-block; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; font-weight: 600; }
+  .log-ev-login { background: #e0e7ff; color: #3346d3; }
+  .log-ev-view { background: #eef0f2; color: #6b7280; }
 
   select.input { appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b75' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; cursor: pointer; }
   select.input:hover { background-color: #fafafb; border-color: var(--border-strong); }
@@ -988,6 +1016,8 @@
         <div class="alerts-row" id="alertsRow" style="margin-top:14px; margin-bottom:0;"></div>
         </div><!-- /filterAdvanced -->
       </div>
+      <!-- Récap activité du jour (discret) -->
+      <div class="today-recap" id="todayRecap"></div>
       <!-- KPI -->
       <div class="kpi-section-label" style="margin-top:0;">Pipeline</div>
       <div class="kpi-grid">
@@ -1124,7 +1154,7 @@
 </div>
 <!-- Admin panel modal -->
 <div class="modal-overlay" id="adminModal">
-  <div class="modal">
+  <div class="modal" style="max-width:860px">
     <div class="modal-head">
       <h2>Administration — Mise à jour des données</h2>
       <div style="display:flex; gap:8px; align-items:center;">
@@ -1151,6 +1181,7 @@
         <div class="t" data-atab="file">Importer un fichier</div>
         <div class="t" data-atab="user">Profil</div>
         <div class="t" data-atab="accounts">Comptes &amp; clients</div>
+        <div class="t" data-atab="logs">Logs</div>
       </div>
       <!-- File tab -->
       <div class="atab-pane" data-pane="file" style="display:none">
@@ -1178,11 +1209,19 @@
       </div>
       <!-- Comptes & clients tab -->
       <div class="atab-pane" data-pane="accounts" style="display:none">
-        <p style="margin:0 0 14px">Créez vos clients puis leurs accès de connexion. Chaque accès ne verra que les données du client choisi.</p>
+        <p style="margin:0 0 12px">Choisissez un client en un clic : toutes les actions ci-dessous s'appliquent alors à son environnement.</p>
 
-        <div class="acc open">
-          <button class="acc-head" type="button"><span>1. Créer un client</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="acc-body">
+        <!-- Sélecteur de client en un clic -->
+        <div class="cap-top">
+          <div class="cap-label">Client</div>
+          <div id="panelClients" class="cap-chips"></div>
+          <button class="btn secondary" id="panelNewClientBtn" type="button" style="font-size:12.5px; padding:7px 12px; white-space:nowrap;">+ Nouveau client</button>
+        </div>
+
+        <!-- Formulaire « nouveau client » (masqué par défaut) -->
+        <div class="acc open" id="newClientBlock" style="display:none; margin-top:12px;">
+          <div class="acc-head" style="cursor:default;"><span>Créer un nouveau client</span></div>
+          <div class="acc-body" style="display:block;">
             <div class="field">
               <label>Nom du client</label>
               <input type="text" class="input" id="newClientName" placeholder="ICS-MTA" maxlength="60">
@@ -1190,7 +1229,7 @@
             <div class="field">
               <label>Consultant responsable (optionnel)</label>
               <select id="newClientConsultant" class="input"><option value="">— Aucun —</option></select>
-              <div class="muted" style="font-size:11.5px; margin-top:6px;">Créez d'abord vos consultants dans la section <strong>3. Consultants</strong> pour les retrouver ici.</div>
+              <div class="muted" style="font-size:11.5px; margin-top:6px;">Gérez vos consultants dans la section <strong>Consultants</strong> ci-dessous.</div>
             </div>
             <div class="field">
               <label>Photo / logo du client (optionnel)</label>
@@ -1206,39 +1245,95 @@
               <input type="text" class="input" id="newClientLogo" placeholder="https://…/logo.png">
             </div>
             <div id="newClientAlert"></div>
-            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="newClientCreate">Créer le client</button></div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+              <button class="btn secondary" id="newClientCancel" type="button">Annuler</button>
+              <button class="btn" id="newClientCreate">Créer le client</button>
+            </div>
           </div>
         </div>
 
-        <div class="acc">
-          <button class="acc-head" type="button"><span>2. Créer un accès (utilisateur)</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="acc-body">
-            <div class="field">
-              <label>Client concerné</label>
-              <select id="newUserClient" class="input"></select>
+        <!-- Invite quand aucun client n'est sélectionné -->
+        <div id="clientContextEmpty" class="muted" style="font-size:13px; padding:18px 4px;">Sélectionnez un client ci-dessus pour gérer son environnement (infos, accès, données).</div>
+
+        <!-- Contexte du client sélectionné -->
+        <div id="clientContext" style="display:none; margin-top:6px;">
+          <div class="cap-ctx-head">Environnement : <span id="panelClientTitle"></span></div>
+
+          <div class="acc open">
+            <button class="acc-head" type="button"><span>Infos du client</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="acc-body">
+              <select id="editClientSelect" style="display:none;"></select>
+              <div class="field">
+                <label>Nom du client</label>
+                <input type="text" class="input" id="editClientName" maxlength="60">
+              </div>
+              <div class="field">
+                <label>Consultant responsable</label>
+                <select id="editClientConsultant" class="input"><option value="">— Aucun —</option></select>
+              </div>
+              <div class="field">
+                <label>Photo / logo</label>
+                <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
+                  <div class="client-logo" id="editClientLogoPreview" style="width:54px; height:54px; border:1px solid var(--border-strong);"></div>
+                  <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir une photo<input type="file" id="editClientLogoFile" accept="image/*" style="display:none"></label>
+                  <button class="btn secondary" id="editClientLogoClear" type="button">Retirer le logo</button>
+                </div>
+                <div class="muted" style="font-size:11.5px; margin-top:6px;">Depuis votre ordinateur, ou collez une URL ci-dessous.</div>
+              </div>
+              <div class="field">
+                <label>… ou URL du logo</label>
+                <input type="text" class="input" id="editClientLogo" placeholder="https://…/logo.png">
+              </div>
+              <div id="editClientAlert"></div>
+              <div style="display:flex; justify-content:flex-end;"><button class="btn" id="editClientSave">Enregistrer les modifications</button></div>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-              <div class="field"><label>Prénom</label><input type="text" class="input" id="newUserFirst" placeholder="Marie" autocomplete="off"></div>
-              <div class="field"><label>Nom</label><input type="text" class="input" id="newUserLast" placeholder="Dupont" autocomplete="off"></div>
+          </div>
+
+          <div class="acc">
+            <button class="acc-head" type="button"><span>Accès / comptes du client</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="acc-body">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <strong style="font-size:12.5px;">Comptes existants</strong>
+                <button class="btn secondary" id="usersRefresh" type="button" style="font-size:12px; padding:6px 10px;">Rafraîchir</button>
+              </div>
+              <div id="usersList" class="muted" style="font-size:12.5px;">Chargement…</div>
+              <div style="border-top:1px solid var(--border); margin:16px 0 12px;"></div>
+              <strong style="font-size:12.5px; display:block; margin-bottom:8px;">Créer un nouvel accès</strong>
+              <select id="newUserClient" style="display:none;"></select>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="field"><label>Prénom</label><input type="text" class="input" id="newUserFirst" placeholder="Marie" autocomplete="off"></div>
+                <div class="field"><label>Nom</label><input type="text" class="input" id="newUserLast" placeholder="Dupont" autocomplete="off"></div>
+              </div>
+              <div class="field">
+                <label>E-mail du client</label>
+                <input type="email" class="input" id="newUserEmail" placeholder="contact@entreprise.com" autocomplete="off">
+              </div>
+              <div class="field">
+                <label>Mot de passe initial (≥ 8 caractères)</label>
+                <input type="text" class="input" id="newUserPassword" placeholder="à communiquer au client" autocomplete="off">
+              </div>
+              <div class="muted" style="font-size:11.5px; margin-bottom:8px;">Le client pourra se connecter immédiatement avec ces identifiants (e-mail déjà confirmé).</div>
+              <div id="newUserAlert"></div>
+              <div style="display:flex; justify-content:flex-end;"><button class="btn" id="newUserCreate">Créer l'accès</button></div>
             </div>
-            <div class="field">
-              <label>E-mail du client</label>
-              <input type="email" class="input" id="newUserEmail" placeholder="contact@entreprise.com" autocomplete="off">
+          </div>
+
+          <div class="acc">
+            <button class="acc-head" type="button"><span>Réinitialiser les données</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="acc-body">
+              <p class="muted" style="font-size:12px; margin:0 0 10px;">Supprime <strong>toutes</strong> les opportunités importées pour ce client. Action irréversible.</p>
+              <select id="resetDataClient" style="display:none;"></select>
+              <div id="resetDataAlert"></div>
+              <div style="display:flex; justify-content:flex-end;"><button class="btn" id="resetDataBtn" type="button" style="background:#a02323;">Supprimer les données de ce client</button></div>
             </div>
-            <div class="field">
-              <label>Mot de passe initial (≥ 8 caractères)</label>
-              <input type="text" class="input" id="newUserPassword" placeholder="à communiquer au client" autocomplete="off">
-            </div>
-            <div class="muted" style="font-size:11.5px; margin-bottom:8px;">Le client pourra se connecter immédiatement avec ces identifiants (e-mail déjà confirmé).</div>
-            <div id="newUserAlert"></div>
-            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="newUserCreate">Créer l'accès</button></div>
           </div>
         </div>
 
-        <div class="acc">
-          <button class="acc-head" type="button"><span>3. Consultants</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <!-- Gestion des consultants (global, indépendant du client) -->
+        <div class="acc" style="margin-top:14px;">
+          <button class="acc-head" type="button"><span>Consultants</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div class="acc-body">
-            <p class="muted" style="font-size:12px; margin:0 0 12px;">Créez vos consultants et leur photo, puis associez-les aux clients à l'étape 1 (ou via « Modifier un client »).</p>
+            <p class="muted" style="font-size:12px; margin:0 0 12px;">Créez vos consultants et leur photo, puis associez-les à un client via « Infos du client » ou à la création.</p>
             <div class="field"><label>Nom du consultant</label><input type="text" class="input" id="newConsName" placeholder="Prénom Nom"></div>
             <div class="field">
               <label>Photo (optionnel)</label>
@@ -1265,62 +1360,15 @@
             <div style="display:flex; justify-content:flex-end;"><button class="btn" id="editConsSave" type="button">Enregistrer</button></div>
           </div>
         </div>
-
-        <div class="acc">
-          <button class="acc-head" type="button"><span>4. Modifier un client existant</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="acc-body">
-            <div class="field">
-              <label>Client à modifier</label>
-              <select id="editClientSelect" class="input"></select>
-            </div>
-            <div class="field">
-              <label>Nom du client</label>
-              <input type="text" class="input" id="editClientName" maxlength="60">
-            </div>
-            <div class="field">
-              <label>Consultant responsable</label>
-              <select id="editClientConsultant" class="input"><option value="">— Aucun —</option></select>
-            </div>
-            <div class="field">
-              <label>Photo / logo</label>
-              <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
-                <div class="client-logo" id="editClientLogoPreview" style="width:54px; height:54px; border:1px solid var(--border-strong);"></div>
-                <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir une photo<input type="file" id="editClientLogoFile" accept="image/*" style="display:none"></label>
-                <button class="btn secondary" id="editClientLogoClear" type="button">Retirer le logo</button>
-              </div>
-              <div class="muted" style="font-size:11.5px; margin-top:6px;">Depuis votre ordinateur, ou collez une URL ci-dessous.</div>
-            </div>
-            <div class="field">
-              <label>… ou URL du logo</label>
-              <input type="text" class="input" id="editClientLogo" placeholder="https://…/logo.png">
-            </div>
-            <div id="editClientAlert"></div>
-            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="editClientSave">Enregistrer les modifications</button></div>
-          </div>
-        </div>
-
-        <div class="acc">
-          <button class="acc-head" type="button"><span>5. Comptes existants</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="acc-body">
-            <div style="display:flex; justify-content:flex-end; margin-bottom:10px;"><button class="btn secondary" id="usersRefresh" type="button" style="font-size:12px; padding:6px 10px;">Rafraîchir</button></div>
-            <div id="usersList" class="muted" style="font-size:12.5px;">Chargement…</div>
-          </div>
-        </div>
-
-        <div class="acc">
-          <button class="acc-head" type="button"><span>6. Réinitialiser les données d'un client</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="acc-body">
-            <p class="muted" style="font-size:12px; margin:0 0 10px;">Supprime <strong>toutes</strong> les opportunités importées pour le client choisi (utile si des données ont été envoyées au mauvais client). Action irréversible.</p>
-            <div class="field">
-              <label>Client</label>
-              <select id="resetDataClient" class="input"></select>
-            </div>
-            <div id="resetDataAlert"></div>
-            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="resetDataBtn" type="button" style="background:#a02323;">Supprimer les données</button></div>
-          </div>
-        </div>
+      </div>
+      <!-- Logs tab -->
+      <div class="atab-pane" data-pane="logs" style="display:none">
+        <p class="muted" style="font-size:12px; margin:0 0 10px;">Trace des connexions et consultations du dashboard par les utilisateurs. <em>view</em> = ouverture sur une session déjà active, <em>login</em> = nouvelle connexion.</p>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;"><button class="btn secondary" id="logsRefresh" type="button" style="font-size:12px; padding:6px 10px;">Rafraîchir</button></div>
+        <div id="logsList" class="muted" style="font-size:12.5px;">Chargement…</div>
       </div>
       <!-- User tab -->
+
       <div class="atab-pane" data-pane="user" style="display:none">
         <p style="margin:0 0 14px">Informations affichées <strong>en bas à gauche</strong> (utilisateur connecté).</p>
         <div class="field">
@@ -1387,6 +1435,7 @@ let currentProfile = null;     // { role, client_id }
 let adminClients = [];         // [{id, name, logo_url}] (admin)
 let adminConsultants = {};     // { name: {id, name, photo_url} }
 let adminSelectedClientId = null;   // cible d'import (menu déroulant admin)
+let panelClientId = null;           // client sélectionné dans l'onglet « Comptes & clients »
 let adminViewClientIds = [];        // clients affichés dans le dashboard (multi-sélection)
 let adminActiveConsultant = null;   // consultant sélectionné (vue agrégée de ses clients)
 let expandedConsultants = {};       // groupes consultant dépliés dans la barre latérale
@@ -1517,6 +1566,7 @@ let periodFilterValue = 0;
 let amountFilter = 'all';   // all | with | without
 let dateFrom = null, dateTo = null;   // plage sur la date de création
 let activeAlertKey = null;
+let todayOnly = false;   // filtre « activité du jour » (clic sur « Aujourd'hui »)
 /* ======================== Normalize input ======================== */
 function normalizeFromJSON(data) {
   const arr = Array.isArray(data) ? data : (data.opportunities || []);
@@ -1571,9 +1621,15 @@ function normalizeFromCSV(text) {
   });
 }
 /* ======================== Filters ======================== */
+function hadActivityToday(r) {
+  const now = new Date();
+  if (isSameDay(parseDateFR(r.createdAt), now)) return true;
+  return (r.history || []).some(h => isSameDay(h && h.created_at ? new Date(h.created_at) : null, now));
+}
 function applyFilters(rows, opts = {}) {
   const months = periodFilterValue;
   let r = rows.slice();
+  if (todayOnly) r = r.filter(hadActivityToday);
   if (selectedUserId !== null) r = r.filter(x => x.userId === selectedUserId);
   if (!opts.skipStatus) {
     if (statusFilterSet.length) r = r.filter(x => statusFilterSet.includes(x.status));
@@ -2204,7 +2260,48 @@ function refresh() {
   renderLeaderboard(rawRows);   // classement : tous les commerciaux, indépendant du filtre commercial
   renderChart(finalRows);
   renderTable(finalRows);
+  renderTodayRecap();
   syncFilterControls();
+}
+// Récap discret de l'activité du jour, calculé sur la vue courante (rawRows).
+function isSameDay(d, ref) {
+  return d instanceof Date && !isNaN(d) &&
+    d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth() && d.getDate() === ref.getDate();
+}
+function renderTodayRecap() {
+  const el = document.getElementById('todayRecap');
+  if (!el) return;
+  const now = new Date();
+  const rows = rawRows || [];
+  let created = 0;
+  const actedIds = new Set(), wonIds = new Set(), lostIds = new Set();
+  rows.forEach(r => {
+    if (isSameDay(parseDateFR(r.createdAt), now)) created++;
+    (r.history || []).forEach(h => {
+      const d = h && h.created_at ? new Date(h.created_at) : null;
+      if (!isSameDay(d, now)) return;
+      actedIds.add(r.id);   // opportunité touchée aujourd'hui (1 fois max)
+      if ((h.data_field || '').toLowerCase().includes('statut')) {
+        const st = normalizeStatus(h.value || '');
+        if (st === 'Gagné') wonIds.add(r.id);
+        else if (st === 'Perdu') lostIds.add(r.id);
+      }
+    });
+  });
+  const actions = actedIds.size;
+  const closed = wonIds.size + lostIds.size;
+  const sep = '<span class="tr-sep">·</span>';
+  el.innerHTML =
+    `<button type="button" class="tr-label${todayOnly ? ' active' : ''}" id="todayToggle" ` +
+      `title="${todayOnly ? "Afficher toutes les données" : "Filtrer le tableau de bord sur l'activité du jour"}" ` +
+      `aria-pressed="${todayOnly}">Aujourd'hui</button>` + sep +
+    `<span class="tr-item"><b>${created}</b> créée${created > 1 ? 's' : ''}</span>` + sep +
+    `<span class="tr-item"><b>${actions}</b> opp. avec action</span>` + sep +
+    `<span class="tr-item"><b>${closed}</b> fermée${closed > 1 ? 's' : ''}` +
+      ` <span class="tr-won">${wonIds.size} gagnée${wonIds.size > 1 ? 's' : ''}</span> /` +
+      ` <span class="tr-lost">${lostIds.size} perdue${lostIds.size > 1 ? 's' : ''}</span></span>`;
+  const toggle = document.getElementById('todayToggle');
+  if (toggle) toggle.onclick = () => { todayOnly = !todayOnly; refresh(); };
 }
 // Synonymes de statut « gagné / perdu » (anglais, casse, variantes FR) ramenés
 // au statut canonique. Les autres statuts sont laissés tels quels.
@@ -2250,6 +2347,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   periodFilterValue = 0;
   amountFilter = 'all';
   dateFrom = null; dateTo = null;
+  todayOnly = false;
   if (typeof dpUpdateTrigger === 'function') dpUpdateTrigger();
   renderCommercials();
   updateSubtitle();
@@ -2439,7 +2537,26 @@ document.querySelectorAll('.tab-bar .t').forEach(t => {
     document.querySelectorAll('.atab-pane').forEach(p => {
       p.style.display = (p.dataset.pane === target) ? '' : 'none';
     });
+    if (target === 'logs') renderAccessLogs();
   });
+});
+/* Sélecteur de client (chips) de l'onglet Comptes & clients */
+const panelClientsBox = document.getElementById('panelClients');
+if (panelClientsBox) panelClientsBox.addEventListener('click', e => {
+  const chip = e.target.closest('.cap-chip');
+  if (chip) selectPanelClient(chip.dataset.id);
+});
+const panelNewClientBtn = document.getElementById('panelNewClientBtn');
+if (panelNewClientBtn) panelNewClientBtn.addEventListener('click', () => {
+  const nb = document.getElementById('newClientBlock');
+  if (!nb) return;
+  const showing = nb.style.display !== 'none';
+  nb.style.display = showing ? 'none' : 'block';
+});
+const newClientCancelBtn = document.getElementById('newClientCancel');
+if (newClientCancelBtn) newClientCancelBtn.addEventListener('click', () => {
+  const nb = document.getElementById('newClientBlock');
+  if (nb) nb.style.display = 'none';
 });
 /* File upload (admin) */
 document.getElementById('adminFile').addEventListener('change', e => {
@@ -2532,7 +2649,6 @@ if (newClientBtn) newClientBtn.addEventListener('click', async () => {
     .insert({ name, logo_url: logo, consultant }).select('id, name').single();
   if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
   await refreshAdminClients();
-  document.getElementById('newUserClient').value = data.id;
   document.getElementById('newClientName').value = '';
   document.getElementById('newClientConsultant').value = '';
   document.getElementById('newClientLogo').value = '';
@@ -2540,7 +2656,10 @@ if (newClientBtn) newClientBtn.addEventListener('click', async () => {
   if (newClientLogoFile) newClientLogoFile.value = '';
   const prev = document.getElementById('newClientLogoPreview');
   if (prev) prev.innerHTML = '';
-  box.innerHTML = `<div class="alert success">Client « ${escapeHTML(data.name)} » créé. Vous pouvez maintenant lui créer un accès ci-dessous.</div>`;
+  const nb = document.getElementById('newClientBlock');
+  if (nb) nb.style.display = 'none';
+  // Sélectionne automatiquement le client tout juste créé : son environnement s'ouvre.
+  selectPanelClient(data.id);
 });
 // 3. Modifier un client existant (nom + logo)
 let editClientLogoData = null;     // nouveau fichier choisi (data URL)
@@ -2662,8 +2781,10 @@ async function renderUsersList() {
   box.textContent = 'Chargement…';
   const { data, error } = await sb.rpc('admin_list_users');
   if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
-  const users = data || [];
-  if (!users.length) { box.textContent = 'Aucun compte.'; return; }
+  let users = data || [];
+  // Dans le contexte d'un client sélectionné : n'afficher que ses comptes.
+  if (panelClientId) users = users.filter(u => u.client_id === panelClientId);
+  if (!users.length) { box.textContent = panelClientId ? 'Aucun accès pour ce client.' : 'Aucun compte.'; return; }
   // Groupe par client
   const groups = {};
   users.forEach(u => {
@@ -2780,6 +2901,41 @@ document.addEventListener('click', async (e) => {
       : '<div class="alert success">Visibilité enregistrée : tous les clients.</div>';
   }
 });
+
+/* ===== 7. Journal des connexions ===== */
+async function renderAccessLogs() {
+  const box = document.getElementById('logsList');
+  if (!box || !sb) return;
+  box.textContent = 'Chargement…';
+  const { data, error } = await sb
+    .from('access_logs')
+    .select('email, client_id, role, event, created_at')
+    .order('created_at', { ascending: false })
+    .limit(500);
+  if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
+  const logs = data || [];
+  if (!logs.length) { box.textContent = 'Aucune connexion enregistrée pour le moment.'; return; }
+  const clientName = {};
+  (adminClients || []).forEach(c => { clientName[c.id] = c.name; });
+  const counts = {};
+  logs.forEach(l => { const k = l.email || '—'; counts[k] = (counts[k] || 0) + 1; });
+  const fmt = ts => { const d = new Date(ts); return isNaN(d) ? '—' : d.toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }); };
+  let html = '<div class="logs-wrap"><table class="logs-table"><thead><tr>' +
+    '<th>Email</th><th>Date / heure</th><th>Client</th><th>Rôle</th><th>Type</th><th title="Total des accès enregistrés pour cet utilisateur">Accès</th>' +
+    '</tr></thead><tbody>';
+  logs.forEach(l => {
+    const cli = l.client_id ? (clientName[l.client_id] || '—') : '—';
+    const ev = (l.event === 'login') ? 'login' : 'view';
+    html += `<tr><td>${escapeHTML(l.email || '—')}</td><td>${escapeHTML(fmt(l.created_at))}</td>` +
+      `<td>${escapeHTML(cli)}</td><td>${escapeHTML(l.role || '—')}</td>` +
+      `<td><span class="log-ev log-ev-${ev}">${ev}</span></td>` +
+      `<td>${counts[l.email || '—']}</td></tr>`;
+  });
+  html += '</tbody></table></div>';
+  box.innerHTML = html;
+}
+const logsRefreshBtn = document.getElementById('logsRefresh');
+if (logsRefreshBtn) logsRefreshBtn.addEventListener('click', renderAccessLogs);
 
 document.addEventListener('change', e => {
   const r = e.target && e.target.closest && e.target.closest('.u-role');
@@ -3051,7 +3207,7 @@ async function doLogin() {
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
   if (error) { alertBox.innerHTML = '<div class="alert error">Échec de connexion : ' + escapeHTML(error.message) + '</div>'; return; }
   document.getElementById('loginPassword').value = '';
-  await onAuthenticated(data.session);
+  await onAuthenticated(data.session, 'login');
 }
 async function doLogout() {
   if (sb) await sb.auth.signOut();
@@ -3089,7 +3245,22 @@ function openLogoutConfirm() { openModal('logoutModal'); }
 window.openLogoutConfirm = openLogoutConfirm;
 const logoutConfirmBtn = document.getElementById('logoutConfirm');
 if (logoutConfirmBtn) logoutConfirmBtn.addEventListener('click', () => { closeModal('logoutModal'); doLogout(); });
-async function onAuthenticated(session) {
+async function logAccess(eventType) {
+  // Enregistre une trace de connexion / consultation (silencieux en cas d'échec).
+  try {
+    if (!sb) return;
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    await sb.from('access_logs').insert({
+      user_id: user.id,
+      email: user.email,
+      client_id: currentProfile ? currentProfile.client_id : null,
+      role: currentProfile ? currentProfile.role : null,
+      event: eventType || 'login',
+    });
+  } catch (e) { /* un échec de log ne doit jamais bloquer l'accès */ }
+}
+async function onAuthenticated(session, eventType = 'login') {
   // Récupère le profil applicatif (rôle + client + identité)
   const { data: prof } = await sb
     .from('profiles')
@@ -3097,6 +3268,7 @@ async function onAuthenticated(session) {
     .eq('id', session.user.id)
     .single();
   currentProfile = prof || { role: 'client', client_id: null };
+  logAccess(eventType);   // trace : connexion ou consultation (fire-and-forget)
   // Identité affichée : UNIQUEMENT celle du compte connecté (jamais un reste d'un autre).
   const hasName = !!(prof && prof.display_name);
   applyUserName(hasName ? prof.display_name : session.user.email);
@@ -3159,6 +3331,45 @@ function populateAdminClientSelect() {
     if (keep && adminClients.some(c => c.id === keep)) es.value = keep;
     loadEditClientFields();
   }
+  // Sélecteur en chips de l'onglet Comptes & clients
+  if (panelClientId && !adminClients.some(c => c.id === panelClientId)) panelClientId = null;
+  renderPanelClients();
+  if (panelClientId) selectPanelClient(panelClientId);
+}
+// Sélecteur de client en un clic (chips) — onglet « Comptes & clients »
+function renderPanelClients() {
+  const box = document.getElementById('panelClients');
+  if (!box) return;
+  if (!adminClients.length) {
+    box.innerHTML = '<span class="muted" style="font-size:12px;">Aucun client. Créez-en un avec « + Nouveau client ».</span>';
+    return;
+  }
+  box.innerHTML = adminClients.map(c => {
+    const logo = c.logo_url ? `<img src="${escapeHTML(c.logo_url)}" alt="">` : '';
+    return `<button type="button" class="cap-chip${c.id === panelClientId ? ' active' : ''}" data-id="${c.id}">` +
+      `<span class="cap-chip-logo">${logo}</span>${escapeHTML(c.name)}</button>`;
+  }).join('');
+}
+// Sélectionne un client : toutes les actions de l'onglet pointent dessus
+function selectPanelClient(id) {
+  panelClientId = id;
+  ['editClientSelect', 'newUserClient', 'resetDataClient'].forEach(sid => {
+    const el = document.getElementById(sid);
+    if (el) el.value = id;
+  });
+  loadEditClientFields();
+  const c = adminClients.find(x => x.id === id);
+  const title = document.getElementById('panelClientTitle');
+  if (title) title.textContent = c ? c.name : '';
+  const ctx = document.getElementById('clientContext');
+  const empty = document.getElementById('clientContextEmpty');
+  if (ctx) ctx.style.display = id ? '' : 'none';
+  if (empty) empty.style.display = id ? 'none' : '';
+  const nb = document.getElementById('newClientBlock');
+  if (nb) nb.style.display = 'none';
+  document.querySelectorAll('#panelClients .cap-chip').forEach(ch =>
+    ch.classList.toggle('active', ch.dataset.id === id));
+  renderUsersList();
 }
 // Pré-remplit les champs de "Modifier un client" selon la sélection
 function loadEditClientFields() {
@@ -3472,7 +3683,7 @@ async function initApp() {
   document.getElementById('loginSubmit').addEventListener('click', doLogin);
   document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
   const { data: { session } } = await sb.auth.getSession();
-  if (session) { await onAuthenticated(session); }
+  if (session) { await onAuthenticated(session, 'view'); }
   else { showLogin(); }
   sb.auth.onAuthStateChange((_e, s) => { if (!s) showLogin(); });
 }
