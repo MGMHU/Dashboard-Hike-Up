@@ -43,8 +43,8 @@
   /* Sidebar */
   .sidebar {
     width: var(--sidebar-w);
-    background: #ffffff;
-    border-right: 1px solid var(--border);
+    background: var(--bg);
+    border-right: none;
     display: flex; flex-direction: column;
     position: sticky; top: 0; height: 100vh;
     flex-shrink: 0;
@@ -162,8 +162,15 @@
     width: 36px; height: 36px;
     display: inline-block;
   }
-  /* Main */
-  .main { flex: 1; min-width: 0; }
+  /* Main — panneau blanc flottant à coins arrondis */
+  .main {
+    flex: 1; min-width: 0;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    margin: 12px 12px 12px 0;
+    box-shadow: var(--shadow);
+  }
   .page { max-width: 1680px; margin: 0 auto; padding: 32px 40px 64px; }
   /* Header */
   .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
@@ -184,9 +191,9 @@
   }
   .card {
     background: var(--card);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    box-shadow: 0 1px 3px rgba(16,17,21,0.06), 0 1px 2px rgba(16,17,21,0.03);
   }
   /* Filter commercial */
   .commercial-card { padding: 16px 20px; margin-bottom: 16px; }
@@ -610,6 +617,11 @@
   .cap-chip-logo { width: 22px; height: 22px; border-radius: 50%; overflow: hidden; background: #fff; border: 1px solid var(--border); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .cap-chip-logo img { width: 100%; height: 100%; object-fit: contain; }
   .cap-chip.active .cap-chip-logo { border-color: rgba(255,255,255,.6); }
+  .cap-chips-sm .cap-chip { font-size: 11.5px; font-weight: 500; padding: 3px 10px 3px 4px; gap: 5px; }
+  .cap-chips-sm .cap-chip-logo { width: 18px; height: 18px; }
+  .pane-locked .field, .pane-locked button:not(.t), .pane-locked .textarea, .pane-locked label.btn { opacity: .5; }
+  .pane-locked .textarea, .pane-locked #jsonApply, .pane-locked #adminFileLabel { pointer-events: none; cursor: not-allowed; }
+  .btn.disabled, .btn:disabled, .textarea:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
   .cap-ctx-head { font-size: 13.5px; font-weight: 700; color: var(--text); margin: 16px 2px 10px; padding-bottom: 8px; border-bottom: 2px solid var(--accent, #5b6cff); }
   .logs-wrap { overflow-x: auto; max-height: 360px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
   .logs-table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -753,8 +765,8 @@
     .app.nav-open .sidebar { transform: translateX(0); }
     .nav-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.42); z-index: 250; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     .app.nav-open .nav-backdrop { display: block; opacity: 1; pointer-events: auto; }
-    .main { width: 100%; min-width: 0; }
-    .sidebar { width: 240px; }
+    .main { width: 100%; min-width: 0; margin: 0; border: none; border-radius: 0; box-shadow: none; }
+    .sidebar { width: 240px; background: #ffffff; }
     .sidebar-brand, .sidebar-user { display: none; }
     .sidebar-nav { padding-top: 16px; }
     .mobile-topbar { display: flex; align-items: center; justify-content: space-between; position: fixed; top: 0; left: 0; right: 0; z-index: 200; background: transparent; border: none; padding: 10px 12px; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; }
@@ -1167,14 +1179,11 @@
       <!-- Sélecteur de client (mode Supabase admin) -->
       <div id="adminClientBar" style="display:none; margin-bottom:14px; padding:12px;
            background:var(--accent-soft); border-radius:10px;">
-        <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:6px;">Client cible pour l'import des données</label>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <select id="adminClientSelect" class="input"
-            style="flex:1; min-width:180px;"></select>
-          <label style="font-size:12.5px; display:flex; align-items:center; gap:6px; white-space:nowrap;">
-            <input type="checkbox" id="adminReplace" checked> Remplacer les données existantes
-          </label>
-        </div>
+        <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:8px;">Client sélectionné <span class="muted" style="font-weight:400;">— pilote tout le panneau (clic pour choisir, reclic pour annuler)</span></label>
+        <div id="adminImportClients" class="cap-chips cap-chips-sm" style="margin-bottom:10px;"></div>
+        <label style="font-size:12.5px; display:inline-flex; align-items:center; gap:6px;">
+          <input type="checkbox" id="adminReplace" checked> Remplacer les données existantes lors d'un import
+        </label>
       </div>
       <div class="tab-bar">
         <div class="t active" data-atab="json">JSON brut</div>
@@ -1185,9 +1194,10 @@
       </div>
       <!-- File tab -->
       <div class="atab-pane" data-pane="file" style="display:none">
+        <div id="pasteHintFile" class="alert" style="display:none; margin:0 0 10px;">⚠️ Sélectionnez d'abord un client dans l'en-tête pour pouvoir importer un fichier.</div>
         <p style="margin:0 0 10px">Formats acceptés : <strong>JSON</strong> (export Catch-up) ou <strong>CSV</strong> (séparateur <code>;</code>).</p>
         <div style="display:flex; gap:8px; align-items:center;">
-          <label class="btn">
+          <label class="btn" id="adminFileLabel">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             Choisir un fichier
             <input type="file" id="adminFile" accept=".json,.csv,application/json,text/csv" style="display:none">
@@ -1198,6 +1208,7 @@
       </div>
       <!-- JSON tab -->
       <div class="atab-pane" data-pane="json">
+        <div id="pasteHintJson" class="alert" style="display:none; margin:0 0 10px;">⚠️ Sélectionnez d'abord un client dans l'en-tête pour pouvoir coller des données.</div>
         <div class="field">
           <label>Coller le JSON brut ici</label>
           <textarea class="textarea" id="jsonRaw" placeholder='{"count": 24, "opportunities": [ ... ]}'></textarea>
@@ -1209,14 +1220,7 @@
       </div>
       <!-- Comptes & clients tab -->
       <div class="atab-pane" data-pane="accounts" style="display:none">
-        <p style="margin:0 0 12px">Choisissez un client en un clic : toutes les actions ci-dessous s'appliquent alors à son environnement.</p>
-
-        <!-- Sélecteur de client en un clic -->
-        <div class="cap-top">
-          <div class="cap-label">Client</div>
-          <div id="panelClients" class="cap-chips"></div>
-          <button class="btn secondary" id="panelNewClientBtn" type="button" style="font-size:12.5px; padding:7px 12px; white-space:nowrap;">+ Nouveau client</button>
-        </div>
+        <p style="margin:0 0 12px">Le client choisi dans l'en-tête ci-dessus pilote toutes les actions. <button class="btn secondary" id="panelNewClientBtn" type="button" style="font-size:12px; padding:5px 10px; white-space:nowrap; margin-left:4px;">+ Nouveau client</button></p>
 
         <!-- Formulaire « nouveau client » (masqué par défaut) -->
         <div class="acc open" id="newClientBlock" style="display:none; margin-top:12px;">
@@ -2541,11 +2545,6 @@ document.querySelectorAll('.tab-bar .t').forEach(t => {
   });
 });
 /* Sélecteur de client (chips) de l'onglet Comptes & clients */
-const panelClientsBox = document.getElementById('panelClients');
-if (panelClientsBox) panelClientsBox.addEventListener('click', e => {
-  const chip = e.target.closest('.cap-chip');
-  if (chip) selectPanelClient(chip.dataset.id);
-});
 const panelNewClientBtn = document.getElementById('panelNewClientBtn');
 if (panelNewClientBtn) panelNewClientBtn.addEventListener('click', () => {
   const nb = document.getElementById('newClientBlock');
@@ -2658,8 +2657,11 @@ if (newClientBtn) newClientBtn.addEventListener('click', async () => {
   if (prev) prev.innerHTML = '';
   const nb = document.getElementById('newClientBlock');
   if (nb) nb.style.display = 'none';
-  // Sélectionne automatiquement le client tout juste créé : son environnement s'ouvre.
+  // Le client tout juste créé devient le choix maître : son environnement s'ouvre.
+  adminSelectedClientId = data.id;
+  renderImportClients();
   selectPanelClient(data.id);
+  updatePasteState();
 });
 // 3. Modifier un client existant (nom + logo)
 let editClientLogoData = null;     // nouveau fichier choisi (data URL)
@@ -3314,11 +3316,7 @@ function populateAdminClientSelect() {
   const options = adminClients
     .map(c => '<option value="' + c.id + '">' + escapeHTML(c.name) + '</option>')
     .join('');
-  const sel = document.getElementById('adminClientSelect');
-  if (sel) {
-    sel.innerHTML = options;
-    if (adminSelectedClientId) sel.value = adminSelectedClientId;
-  }
+  renderImportClients();
   // Sélecteurs de l'onglet "Comptes & clients"
   const us = document.getElementById('newUserClient');
   if (us) us.innerHTML = options;
@@ -3331,31 +3329,46 @@ function populateAdminClientSelect() {
     if (keep && adminClients.some(c => c.id === keep)) es.value = keep;
     loadEditClientFields();
   }
-  // Sélecteur en chips de l'onglet Comptes & clients
-  if (panelClientId && !adminClients.some(c => c.id === panelClientId)) panelClientId = null;
-  renderPanelClients();
-  if (panelClientId) selectPanelClient(panelClientId);
+  // Le client maître (en-tête) pilote aussi le contexte « Comptes & clients »
+  if (adminSelectedClientId && !adminClients.some(c => c.id === adminSelectedClientId)) adminSelectedClientId = null;
+  selectPanelClient(adminSelectedClientId);
+  updatePasteState();
 }
-// Sélecteur de client en un clic (chips) — onglet « Comptes & clients »
-function renderPanelClients() {
-  const box = document.getElementById('panelClients');
+// Pastilles « client maître » (en-tête) : clic = sélection, reclic = annule
+function renderImportClients() {
+  const box = document.getElementById('adminImportClients');
   if (!box) return;
   if (!adminClients.length) {
-    box.innerHTML = '<span class="muted" style="font-size:12px;">Aucun client. Créez-en un avec « + Nouveau client ».</span>';
+    box.innerHTML = '<span class="muted" style="font-size:12px;">Aucun client. Créez-en un dans « Comptes & clients ».</span>';
     return;
   }
   box.innerHTML = adminClients.map(c => {
     const logo = c.logo_url ? `<img src="${escapeHTML(c.logo_url)}" alt="">` : '';
-    return `<button type="button" class="cap-chip${c.id === panelClientId ? ' active' : ''}" data-id="${c.id}">` +
+    return `<button type="button" class="cap-chip${c.id === adminSelectedClientId ? ' active' : ''}" data-id="${c.id}">` +
       `<span class="cap-chip-logo">${logo}</span>${escapeHTML(c.name)}</button>`;
   }).join('');
 }
-// Sélectionne un client : toutes les actions de l'onglet pointent dessus
+// Active/désactive l'import (JSON + fichier) selon qu'un client est choisi
+function updatePasteState() {
+  const ok = !!adminSelectedClientId;
+  const ids = ['jsonRaw', 'jsonApply', 'adminFile'];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = !ok; });
+  document.querySelectorAll('.atab-pane[data-pane="json"], .atab-pane[data-pane="file"]').forEach(p => {
+    p.classList.toggle('pane-locked', !ok);
+  });
+  const fileLbl = document.getElementById('adminFileLabel');
+  if (fileLbl) fileLbl.classList.toggle('disabled', !ok);
+  const hintJson = document.getElementById('pasteHintJson');
+  if (hintJson) hintJson.style.display = ok ? 'none' : '';
+  const hintFile = document.getElementById('pasteHintFile');
+  if (hintFile) hintFile.style.display = ok ? 'none' : '';
+}
+// Reflète le client maître dans le contexte « Comptes & clients »
 function selectPanelClient(id) {
   panelClientId = id;
   ['editClientSelect', 'newUserClient', 'resetDataClient'].forEach(sid => {
     const el = document.getElementById(sid);
-    if (el) el.value = id;
+    if (el) el.value = id || '';
   });
   loadEditClientFields();
   const c = adminClients.find(x => x.id === id);
@@ -3367,8 +3380,6 @@ function selectPanelClient(id) {
   if (empty) empty.style.display = id ? 'none' : '';
   const nb = document.getElementById('newClientBlock');
   if (nb) nb.style.display = 'none';
-  document.querySelectorAll('#panelClients .cap-chip').forEach(ch =>
-    ch.classList.toggle('active', ch.dataset.id === id));
   renderUsersList();
 }
 // Pré-remplit les champs de "Modifier un client" selon la sélection
@@ -3401,7 +3412,8 @@ async function loadFromSupabase() {
     // Liste des clients
     const { data: clients } = await sb.from('clients').select('id, name, logo_url, consultant').order('name');
     adminClients = clients || [];
-    if (!adminSelectedClientId && adminClients.length) adminSelectedClientId = adminClients[0].id;
+    // Cible d'import : rien de présélectionné — l'admin choisit par un clic.
+    if (adminSelectedClientId && !adminClients.some(c => c.id === adminSelectedClientId)) adminSelectedClientId = null;
     // Vue par défaut : tous les clients ; purge les ids obsolètes
     adminViewClientIds = adminViewClientIds.filter(id => adminClients.some(c => c.id === id));
     if (!adminViewClientIds.length) adminViewClientIds = adminClients.map(c => c.id);
@@ -3621,9 +3633,18 @@ async function initApp() {
     loadData(normalizeFromJSON(DEFAULT_DATA));
     return;
   }
-  // Le menu déroulant admin ne sert qu'à choisir la cible d'IMPORT
-  const sel = document.getElementById('adminClientSelect');
-  if (sel) sel.addEventListener('change', () => { adminSelectedClientId = sel.value; });
+  // Pastilles « client maître » : clic = sélectionne, reclic = annule.
+  // Pilote l'import ET le contexte « Comptes & clients ».
+  const importBox = document.getElementById('adminImportClients');
+  if (importBox) importBox.addEventListener('click', e => {
+    const chip = e.target.closest('.cap-chip');
+    if (!chip) return;
+    const id = chip.dataset.id;
+    adminSelectedClientId = (adminSelectedClientId === id) ? null : id;
+    renderImportClients();
+    selectPanelClient(adminSelectedClientId);
+    updatePasteState();
+  });
 
   // "Vue d'ensemble" = afficher tous les clients (admin)
   const overviewBtn = document.getElementById('navOverview');
