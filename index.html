@@ -222,6 +222,38 @@
   .today-recap .tr-sep { opacity: .35; }
   .today-recap .tr-won { color: var(--ok, #1f9d57); }
   .today-recap .tr-lost { color: var(--danger, #d33b46); }
+  .today-recap .tr-more { font: inherit; font-size: 11px; font-weight: 600; color: var(--text-muted); background: transparent; border: none; cursor: pointer; padding: 2px 4px; }
+  .today-recap .tr-more:hover { text-decoration: underline; color: var(--text); }
+  .ta-sort { display: inline-flex; gap: 2px; margin-left: auto; }
+  .ta-sort button { font: inherit; font-size: 10.5px; font-weight: 600; color: var(--text-muted); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; cursor: pointer; }
+  .ta-sort button:hover { background: #f1f2f5; }
+  .ta-sort button.active { background: var(--text); color: #fff; border-color: var(--text); }
+  .today-activity .ta-head { display: flex; align-items: center; gap: 10px; }
+  .today-activity .ta-group { font-size: 11.5px; font-weight: 700; color: var(--text); padding: 8px 14px 4px; background: #f6f6f8; border-bottom: 1px solid var(--border); }
+  .today-activity .ta-import { color: var(--text-muted); font-style: italic; }
+  .today-activity .ta-expand { font: inherit; font-size: 10.5px; font-weight: 600; color: var(--text-muted); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; cursor: pointer; margin-left: 4px; }
+  .today-activity .ta-expand:hover { background: #f1f2f5; color: var(--text); }
+  .today-activity .ta-user { display: inline-flex; align-items: center; gap: 5px; margin-left: 6px; font-size: 11.5px; font-weight: 600; color: var(--text); vertical-align: middle; }
+  .today-activity .ta-avatar { width: 18px; height: 18px; border-radius: 50%; overflow: hidden; background: #eef0ff; border: 1px solid var(--border-strong); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .today-activity .ta-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .today-activity .ta-avatar .cons-init { font-size: 8px; font-weight: 700; color: #1a1a1f; }
+  .today-activity .ta-sub { background: #fff; border-left: 2px solid var(--accent, #5b6cff); }
+  .today-activity .ta-sub .ta-item { padding-left: 22px; }
+  .today-activity { margin: 2px 2px 16px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--bg); overflow: hidden; }
+  .today-activity .ta-head { font-size: 12px; font-weight: 700; color: var(--text); padding: 10px 14px; border-bottom: 1px solid var(--border); background: #fff; }
+  .today-activity .ta-empty { padding: 16px 14px; font-size: 12.5px; color: var(--text-muted); }
+  .today-activity .ta-list { max-height: 340px; overflow-y: auto; }
+  .today-activity .ta-item { display: flex; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .today-activity .ta-item:last-child { border-bottom: none; }
+  .today-activity .ta-time { font-size: 11.5px; color: var(--text-faint); font-variant-numeric: tabular-nums; flex-shrink: 0; padding-top: 1px; min-width: 38px; }
+  .today-activity .ta-body { flex: 1; min-width: 0; font-size: 12.5px; }
+  .today-activity .ta-opp { font-weight: 600; color: var(--text); }
+  .today-activity .ta-who { color: var(--text-muted); font-size: 11.5px; }
+  .today-activity .ta-text { color: var(--text-muted); margin-top: 3px; white-space: pre-wrap; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .today-activity .ta-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px; vertical-align: middle; }
+  .today-activity .ta-c { background: var(--accent-soft); color: var(--accent, #5b6cff); }
+  .today-activity .ta-s { background: var(--st-gagne-bg); color: var(--st-gagne-fg); }
+  .today-activity .ta-m { background: #eef0f2; color: #6b7280; }
   .filter-group { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
   .filter-label { font-size: 12px; color: var(--text-faint); min-width: 58px; padding-top: 6px; }
   .ftags { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1034,6 +1066,8 @@
       </div>
       <!-- Récap activité du jour (discret) -->
       <div class="today-recap" id="todayRecap"></div>
+      <!-- Détail de l'activité du jour (replié par défaut) -->
+      <div class="today-activity" id="todayActivity" style="display:none;"></div>
       <!-- KPI -->
       <div class="kpi-section-label" style="margin-top:0;">Pipeline</div>
       <div class="kpi-grid">
@@ -1575,6 +1609,9 @@ let amountFilter = 'all';   // all | with | without
 let dateFrom = null, dateTo = null;   // plage sur la date de création
 let activeAlertKey = null;
 let todayOnly = false;   // filtre « activité du jour » (clic sur « Aujourd'hui »)
+let todayActivityOpen = false;   // volet détaillé « activité du jour » (replié par défaut)
+let todayActivitySort = 'time';  // tri du volet : 'time' | 'type' | 'entity'
+let todayActivityExpanded = {};  // clusters de mouvements simultanés dépliés { "opp|HH:MM": true }
 /* ======================== Normalize input ======================== */
 function normalizeFromJSON(data) {
   const arr = Array.isArray(data) ? data : (data.opportunities || []);
@@ -2307,9 +2344,93 @@ function renderTodayRecap() {
     `<span class="tr-item"><b>${actions}</b> opp. avec action</span>` + sep +
     `<span class="tr-item"><b>${closed}</b> fermée${closed > 1 ? 's' : ''}` +
       ` <span class="tr-won">${wonIds.size} gagnée${wonIds.size > 1 ? 's' : ''}</span> /` +
-      ` <span class="tr-lost">${lostIds.size} perdue${lostIds.size > 1 ? 's' : ''}</span></span>`;
+      ` <span class="tr-lost">${lostIds.size} perdue${lostIds.size > 1 ? 's' : ''}</span></span>` + sep +
+    `<button type="button" class="tr-more" id="todayActivityToggle" aria-expanded="${todayActivityOpen}">` +
+      `${todayActivityOpen ? 'Masquer ▴' : 'Tout afficher ▾'}</button>`;
   const toggle = document.getElementById('todayToggle');
   if (toggle) toggle.onclick = () => { todayOnly = !todayOnly; refresh(); };
+  const moreBtn = document.getElementById('todayActivityToggle');
+  if (moreBtn) moreBtn.onclick = () => { todayActivityOpen = !todayActivityOpen; renderTodayRecap(); };
+  renderTodayActivity();
+}
+// « Tout afficher » : derniers mouvements du jour, plus récents en haut.
+// Les mouvements partageant la même heure:minute (modification de masse / import)
+// sont condensés en une notification dépliable.
+function renderTodayActivity() {
+  const panel = document.getElementById('todayActivity');
+  if (!panel) return;
+  panel.style.display = todayActivityOpen ? '' : 'none';
+  if (!todayActivityOpen) { panel.innerHTML = ''; return; }
+  const now = new Date();
+  const events = [];
+  (rawRows || []).forEach(r => {
+    const oppName = r.company || r.name || ('Opportunité ' + (r.id || ''));
+    (r.comments || []).forEach(c => {
+      const d = c && c.date ? new Date(String(c.date).replace(' ', 'T')) : null;
+      if (!isSameDay(d, now)) return;
+      events.push({ t: d, kind: 'comment', opp: oppName, who: c.by || '', text: (c.striped_comment || c.comment || '').trim() });
+    });
+    (r.history || []).forEach(h => {
+      const d = h && h.created_at ? new Date(h.created_at) : null;
+      if (!isSameDay(d, now)) return;
+      const isStatus = (h.data_field || '').toLowerCase().includes('statut');
+      const fallback = (h.data_field ? ('Mise à jour : ' + h.data_field) : 'Modification') + (h.value ? (' → ' + h.value) : '');
+      events.push({ t: d, kind: isStatus ? 'status' : 'move', opp: oppName, who: h.user_name || '', text: (h.display || fallback).trim() });
+    });
+  });
+  const ms = e => e.t ? e.t.getTime() : 0;
+  const fmtTime = d => (d && !isNaN(d)) ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+  const badge = k => k === 'comment' ? '<span class="ta-badge ta-c">Commentaire</span>'
+    : k === 'status' ? '<span class="ta-badge ta-s">Statut</span>'
+    : '<span class="ta-badge ta-m">Mouvement</span>';
+  const itemHtml = e =>
+    '<div class="ta-item">' +
+      `<div class="ta-time">${escapeHTML(fmtTime(e.t))}</div>` +
+      '<div class="ta-body">' +
+        badge(e.kind) + ` <span class="ta-opp">${escapeHTML(e.opp)}</span>` +
+        (e.who ? ` <span class="ta-who">par ${escapeHTML(e.who)}</span>` : '') +
+        (e.text ? `<div class="ta-text">${escapeHTML(e.text)}</div>` : '') +
+      '</div>' +
+    '</div>';
+
+  events.sort((a, b) => ms(b) - ms(a));   // plus récents d'abord
+  let body;
+  if (!events.length) {
+    body = '<div class="ta-empty">Aucun commentaire ni mouvement enregistré aujourd\'hui.</div>';
+  } else {
+    // Nombre de mouvements (hors commentaires) par minute → détection des modifs de masse
+    const perMin = {};
+    events.forEach(e => { if (e.kind !== 'comment') { const k = fmtTime(e.t); perMin[k] = (perMin[k] || 0) + 1; } });
+    const MASS = 3;   // seuil « modification de masse »
+    const seen = {};
+    body = '<div class="ta-list">' + events.map(e => {
+      const k = fmtTime(e.t);
+      if (e.kind !== 'comment' && perMin[k] >= MASS) {
+        if (seen[k]) return '';   // déjà représenté par la notification de masse
+        seen[k] = true;
+        const cluster = events.filter(x => x.kind !== 'comment' && fmtTime(x.t) === k);
+        const open = !!todayActivityExpanded[k];
+        const whos = [...new Set(cluster.map(x => x.who).filter(Boolean))];
+        const userTag = whos.length === 1
+          ? `<span class="ta-user"><span class="ta-avatar">${consultantPic(whos[0])}</span>${escapeHTML(whos[0])}</span>`
+          : '';
+        let h = '<div class="ta-item ta-cluster">' +
+          `<div class="ta-time">${escapeHTML(k)}</div>` +
+          '<div class="ta-body"><span class="ta-badge ta-m">Mouvement</span> ' +
+          `<span class="ta-import">${cluster.length} mouvements à ${escapeHTML(k)}</span>` +
+          userTag + ' ' +
+          `<button type="button" class="ta-expand" data-key="${escapeHTML(k)}">${open ? 'Masquer ▴' : 'Tout déployer ▾'}</button>` +
+          '</div></div>';
+        if (open) h += '<div class="ta-sub">' + cluster.map(itemHtml).join('') + '</div>';
+        return h;
+      }
+      return itemHtml(e);
+    }).join('') + '</div>';
+  }
+
+  panel.innerHTML = `<div class="ta-head"><span>Derniers mouvements${events.length ? ` — ${events.length}` : ''}</span></div>` + body;
+  panel.querySelectorAll('.ta-expand').forEach(b =>
+    b.onclick = () => { const k = b.dataset.key; todayActivityExpanded[k] = !todayActivityExpanded[k]; renderTodayActivity(); });
 }
 // Synonymes de statut « gagné / perdu » (anglais, casse, variantes FR) ramenés
 // au statut canonique. Les autres statuts sont laissés tels quels.
