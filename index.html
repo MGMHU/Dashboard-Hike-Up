@@ -176,6 +176,8 @@
   .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; }
   .header h1 { font-size: 28px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.02em; }
   .header .subtitle { color: var(--text-muted); font-size: 14px; }
+  .header .last-update { color: var(--text-faint); font-size: 11.5px; margin-top: 4px; }
+  .header .last-update:empty { display: none; }
   .header-controls { display: flex; gap: 10px; align-items: center; }
   .select {
     appearance: none; -webkit-appearance: none;
@@ -996,6 +998,7 @@
         <div>
           <h1 id="reportTitle">Vue d'ensemble</h1>
           <div class="subtitle" id="subtitle">Suivi du pipeline commercial de toute l'équipe.</div>
+          <div class="last-update" id="lastUpdate"></div>
         </div>
       </div>
       <!-- Filtres -->
@@ -3555,19 +3558,34 @@ async function loadFromSupabase() {
   if (!clientId) { loadData([]); return; }
   await applyClientBranding(clientId, isAdmin);
   const { data, error } = await sb
-    .from('opportunities').select('payload').eq('client_id', clientId);
+    .from('opportunities').select('payload, created_at').eq('client_id', clientId);
   if (error) { console.error(error); loadData([]); return; }
   loadData((data || []).map(r => r.payload));
+  renderLastUpdate(data);
 }
 
 // Charge les données pour les clients sélectionnés (admin, multi-sélection)
 async function loadAdminView() {
-  if (!adminViewClientIds.length) { loadData([]); updateSubtitle(); return; }
+  if (!adminViewClientIds.length) { loadData([]); updateSubtitle(); renderLastUpdate([]); return; }
   applyViewBranding();
   const { data, error } = await sb
-    .from('opportunities').select('payload').in('client_id', adminViewClientIds);
+    .from('opportunities').select('payload, created_at').in('client_id', adminViewClientIds);
   if (error) { console.error(error); loadData([]); return; }
   loadData((data || []).map(r => r.payload));
+  renderLastUpdate(data);
+}
+// Affiche discrètement la date de la dernière poussée de données (max created_at)
+function renderLastUpdate(rows) {
+  const el = document.getElementById('lastUpdate');
+  if (!el) return;
+  let latest = null;
+  (rows || []).forEach(r => {
+    const d = r && r.created_at ? new Date(r.created_at) : null;
+    if (d && !isNaN(d) && (!latest || d > latest)) latest = d;
+  });
+  if (!latest) { el.textContent = ''; return; }
+  el.textContent = 'Données mises à jour le ' + latest.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) +
+    ' à ' + latest.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
 // Marque en haut à gauche selon la vue (1 client → sa marque ; sinon libellé agrégé)
