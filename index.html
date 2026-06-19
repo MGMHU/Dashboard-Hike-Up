@@ -3572,7 +3572,8 @@ async function loadAdminView() {
     .from('opportunities').select('payload, created_at').in('client_id', adminViewClientIds);
   if (error) { console.error(error); loadData([]); return; }
   loadData((data || []).map(r => r.payload));
-  renderLastUpdate(data);
+  // Date de màj uniquement pour un client précis (jamais en Vue d'ensemble / agrégat)
+  renderLastUpdate(adminViewClientIds.length === 1 ? data : []);
 }
 // Affiche discrètement la date de la dernière poussée de données (max created_at)
 function renderLastUpdate(rows) {
