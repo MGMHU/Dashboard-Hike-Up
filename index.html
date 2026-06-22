@@ -178,6 +178,14 @@
   .header .subtitle { color: var(--text-muted); font-size: 14px; }
   .header .last-update { color: var(--text-faint); font-size: 11.5px; margin-top: 4px; }
   .header .last-update:empty { display: none; }
+  .opp-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); cursor: pointer; user-select: none; white-space: nowrap; }
+  .switch { position: relative; display: inline-block; width: 34px; height: 20px; flex-shrink: 0; }
+  .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .switch .slider { position: absolute; inset: 0; background: var(--border-strong); border-radius: 999px; transition: background .2s; }
+  .switch .slider::before { content: ""; position: absolute; height: 16px; width: 16px; left: 2px; top: 2px; background: #fff; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: transform .2s; }
+  .switch input:checked + .slider { background: var(--accent, #5b6cff); }
+  .switch input:checked + .slider::before { transform: translateX(14px); }
+  .switch input:focus-visible + .slider { box-shadow: 0 0 0 3px var(--accent-soft); }
   .header-controls { display: flex; gap: 10px; align-items: center; }
   .select {
     appearance: none; -webkit-appearance: none;
@@ -1162,7 +1170,10 @@
       <div class="card table-card">
         <div class="table-header">
           <div class="title">Opportunités</div>
-          <div class="count"><span id="oppCount">0</span> au total</div>
+          <div style="display:flex; align-items:center; gap:14px;">
+            <label class="opp-toggle"><span class="switch"><input type="checkbox" id="oppShowClosed"><span class="slider"></span></span> Inclure les fermées (gagné/perdu)</label>
+            <div class="count"><span id="oppCount">0</span> affichée(s)</div>
+          </div>
         </div>
         <div class="table-scroll">
           <table>
@@ -2220,16 +2231,23 @@ function renderActivity(r) {
       ` : ''}
     </div>`;
 }
+let lastTableRows = [];      // dernières lignes passées à la table (pour le toggle)
+let showClosedOpps = false;  // inclure les opportunités fermées (Gagné/Perdu)
 function renderTable(rows) {
+  lastTableRows = rows || [];
   const body = document.getElementById('oppBody');
+  // Par défaut : uniquement les opportunités encore actives (hors Gagné/Perdu)
+  if (!showClosedOpps) rows = (rows || []).filter(r => r.status !== 'Gagné' && r.status !== 'Perdu');
   document.getElementById('oppCount').textContent = rows.length;
+  // Priorité aux leads à relancer : ceux sans suivi en haut, puis du suivi le
+  // plus ancien au plus récent (les récemment suivis en bas).
   const sorted = rows.slice().sort((a, b) => {
     const da = parseDateFR(a.followUp);
     const db = parseDateFR(b.followUp);
     if (!da && !db) return 0;
-    if (!da) return 1;
-    if (!db) return -1;
-    return db - da;
+    if (!da) return -1;   // pas (encore) suivi → en priorité
+    if (!db) return 1;
+    return da - db;        // suivi le plus ancien d'abord
   });
   body.innerHTML = '';
   if (!sorted.length) {
@@ -2268,6 +2286,10 @@ function renderTable(rows) {
     });
   });
 }
+(function wireOppToggle() {
+  const cb = document.getElementById('oppShowClosed');
+  if (cb) cb.addEventListener('change', () => { showClosedOpps = cb.checked; renderTable(lastTableRows); });
+})();
 /* ======================== Wiring ======================== */
 function populateStatusFilter() {
   const known = new Set(rawRows.map(r => r.status).filter(Boolean));
