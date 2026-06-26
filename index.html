@@ -1104,7 +1104,7 @@
           <div class="value" id="kpiPipeline">—</div>
         </div>
         <div class="card kpi">
-          <div class="label">Chiffre gagné <span class="help">?<span class="tip">Somme des montants des opportunités au statut <em>Gagné</em>. Sous le montant : nombre d'opportunités gagnées.<br><code>Σ Montant (Gagné)</code></span></span></div>
+          <div class="label">Chiffre gagné <span class="help">?<span class="tip">Somme des montants des opportunités <em>Gagné</em>, filtrées sur leur <strong>date de clôture/gain</strong> (et non de création) lorsqu'une période est sélectionnée.<br><code>Σ Montant (Gagné, clôturé dans la période)</code></span></span></div>
           <div class="value" id="kpiWon">—</div>
         </div>
         <div class="card kpi">
@@ -1636,6 +1636,19 @@ function relativeDays(s) {
   if (n <= 0) return "aujourd'hui";
   return n === 1 ? 'il y a 1 jour' : `il y a ${n} jours`;
 }
+// Date à laquelle l'opportunité a été gagnée (clôture) : won_at/closing_date,
+// sinon dernier passage du statut en « Gagné » dans l'historique, sinon date de suivi.
+function rowWonDate(r) {
+  if (r && r.wonDate) { const d = parseAnyDate(r.wonDate); if (d) return d; }
+  if (r && Array.isArray(r.history)) {
+    for (const h of r.history) {   // historique anté-chronologique (récent d'abord)
+      if (h && (h.data_field || '').toLowerCase().includes('statut') && normalizeStatus(h.value || '') === 'Gagné') {
+        const d = parseAnyDate(h.created_at); if (d) return d;
+      }
+    }
+  }
+  return parseAnyDate(r ? r.followUp : null);
+}
 function fmtEUR(v) {
   return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(Math.round(v)) + ' €';
 }
@@ -1691,6 +1704,7 @@ function normalizeFromJSON(data) {
       status: normalizeStatus(o.opportunity_status || o.statut || ''),
       followUp: o.updated_at || '',
       nextAction: o.next_action_date || '',
+      wonDate: o.won_at || o.closing_date || '',
       createdAt: o.created_at || '',
       userId: o.user_id,
       userFirst: o.user_first_name || '',
@@ -1918,6 +1932,23 @@ function trendArrow(cur, prev, inverse = false) {
   const pct = prev > 0 ? Math.round(Math.abs(cur - prev) / prev * 100) : 100;
   return `<span class="trend" style="color:${color}; font-weight:600;">${sym} ${pct}%<span class="trend-tip">${TIP}</span></span>`;
 }
+// Opportunités gagnées filtrées sur la DATE DE CLÔTURE (et non de création)
+// pour le KPI « Chiffre gagné ». Réplique les autres filtres (commercial, montant…).
+function wonRowsForKpi() {
+  let r = (rawRows || []).filter(x => x.status === 'Gagné');
+  if (todayOnly) r = r.filter(hadActivityToday);
+  if (selectedUserId !== null) r = r.filter(x => x.userId === selectedUserId);
+  if (amountFilter === 'with') r = r.filter(x => x.amount > 0);
+  else if (amountFilter === 'without') r = r.filter(x => x.amount === 0);
+  if (dateFrom) r = r.filter(x => { const d = rowWonDate(x); return d && d >= dateFrom; });
+  if (dateTo)   r = r.filter(x => { const d = rowWonDate(x); return d && d <= dateTo; });
+  if (periodFilterValue > 0) {
+    const now = new Date();
+    const cutoff = new Date(now.getFullYear(), now.getMonth() - periodFilterValue + 1, 1);
+    r = r.filter(x => { const d = rowWonDate(x); return d ? d >= cutoff : true; });
+  }
+  return r;
+}
 function renderKPIs(rows) {
   const isWon  = r => r.status === 'Gagné';
   const isLost = r => r.status === 'Perdu';
@@ -1927,7 +1958,9 @@ function renderKPIs(rows) {
   const lost = rows.filter(isLost);
   const withAmount = rows.filter(r => r.amount > 0);
   const pipelineTotal = active.reduce((s,r) => s + r.amount, 0);  // opportunités ouvertes uniquement
-  const wonTotal = won.reduce((s,r) => s + r.amount, 0);
+  // « Chiffre gagné » : filtré sur la date de clôture/gain (pas la création)
+  const wonKpi = wonRowsForKpi();
+  const wonTotal = wonKpi.reduce((s,r) => s + r.amount, 0);
   const weighted = rows.reduce((s,r) => s + r.amount * (r.percentage/100), 0);
   const activeCount = active.length;
   const convDenom = won.length + lost.length;
@@ -1965,7 +1998,7 @@ function renderKPIs(rows) {
   };
   document.getElementById('kpiPipeline').innerHTML =
     `${fmtEUR(pipelineTotal)}<div style="font-size:11px; font-weight:500; color:var(--text-faint); margin-top:3px; letter-spacing:0;">${won.length} gagné${won.length > 1 ? 's' : ''} · ${lost.length} perdu${lost.length > 1 ? 's' : ''} · ${T.pipeline}</div>`;
-  document.getElementById('kpiWon').innerHTML      = `${fmtEUR(wonTotal)}${subKpi(`${won.length} gagnée${won.length > 1 ? 's' : ''} · ${T.won}`)}`;
+  document.getElementById('kpiWon').innerHTML      = `${fmtEUR(wonTotal)}${subKpi(`${wonKpi.length} gagnée${wonKpi.length > 1 ? 's' : ''} · ${T.won}`)}`;
   document.getElementById('kpiWeighted').innerHTML = `${fmtEUR(weighted)}${subKpi(T.weighted)}`;
   document.getElementById('kpiActive').innerHTML   = `${activeCount}${subKpi(`${rows.length} au total · ${T.active}`)}`;
   document.getElementById('kpiConv').innerHTML     = `${conv.toFixed(1)} <small>%</small>${subKpi(T.conv)}`;
