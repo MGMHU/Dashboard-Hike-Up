@@ -274,7 +274,7 @@
     cursor: pointer; user-select: none; transition: background 0.12s, color 0.12s, border-color 0.12s;
   }
   .ftag:hover { background: #f7f7fa; }
-  .ftag.active { background: #1a1a1f; color: #fff; border-color: #1a1a1f; }
+  .ftag.active { background: var(--accent, #5b6cff); color: #fff; border-color: var(--accent, #5b6cff); }
   .ftag .ftag-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .date-input { width: auto; padding: 6px 10px; font-size: 12.5px; }
   .dp { position: relative; display: inline-block; }
@@ -290,8 +290,8 @@
   .dp-day:hover { background: #f1f2f5; }
   .dp-day.empty { visibility: hidden; }
   .dp-day.in-range { background: var(--accent-soft); border-radius: 0; }
-  .dp-day.range-start { background: #1a1a1f; color: #fff; border-radius: 7px 0 0 7px; }
-  .dp-day.range-end { background: #1a1a1f; color: #fff; border-radius: 0 7px 7px 0; }
+  .dp-day.range-start { background: var(--accent, #5b6cff); color: #fff; border-radius: 7px 0 0 7px; }
+  .dp-day.range-end { background: var(--accent, #5b6cff); color: #fff; border-radius: 0 7px 7px 0; }
   .dp-day.range-start.range-end { border-radius: 7px; }
   .dp-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
   .chip {
@@ -305,8 +305,8 @@
     transition: background 0.12s, color 0.12s, border-color 0.12s;
   }
   .chip:hover { background: #f7f7fa; }
-  .chip.active { background: #111; color: #fff; border-color: #111; }
-  .chip.active .avatar { box-shadow: 0 0 0 2px #111; }
+  .chip.active { background: var(--accent, #5b6cff); color: #fff; border-color: var(--accent, #5b6cff); }
+  .chip.active .avatar { box-shadow: 0 0 0 2px var(--accent, #5b6cff); }
   .avatar {
     width: 19px; height: 19px;
     border-radius: 50%;
@@ -457,6 +457,11 @@
   .table-header { padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
   .table-header .title { font-weight: 600; font-size: 15px; }
   .table-header .count { color: var(--text-muted); font-size: 13px; }
+  .opp-search-wrap { position: relative; display: inline-flex; align-items: center; }
+  .opp-search-wrap svg { position: absolute; left: 10px; color: var(--text-faint); pointer-events: none; }
+  .opp-search { font: inherit; font-size: 12.5px; color: var(--text); background: #fff; border: 1px solid var(--border-strong); border-radius: 999px; padding: 6px 12px 6px 30px; width: 210px; outline: none; transition: border-color .15s, box-shadow .15s; }
+  .opp-search:focus { border-color: var(--accent, #5b6cff); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .opp-search::placeholder { color: var(--text-faint); }
   .table-scroll { max-height: 600px; overflow-y: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   thead th {
@@ -464,20 +469,30 @@
     color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.04em;
     padding: 12px 22px; background: #fafafb;
     border-bottom: 1px solid var(--border);
-    position: sticky; top: 0;
+    position: sticky; top: 0; z-index: 3;
   }
   tbody td { padding: 14px 22px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr.opp-row td { vertical-align: top; }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr.opp-row { cursor: pointer; }
   tbody tr.opp-row:hover { background: #fafafb; }
-  tbody tr.opp-row.expanded { background: #f6f7fb; }
+  tbody tr.opp-row.expanded { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent, #5b6cff); }
+  tbody tr.opp-row.expanded:hover { background: var(--accent-soft); }
   .chev {
     display: inline-block; width: 14px; height: 14px;
     transition: transform 0.18s; color: var(--text-muted); margin-right: 4px;
   }
   tbody tr.opp-row.expanded .chev { transform: rotate(90deg); color: var(--text); }
-  tbody tr.detail-row td { padding: 0; background: #f6f7fb; }
+  tbody tr.detail-row td { padding: 0; background: var(--accent-soft); }
   tbody tr.detail-row.hidden { display: none; }
+  .opp-name-cell { display: flex; align-items: flex-start; gap: 7px; }
+  .opp-name-block { display: flex; flex-direction: column; min-width: 0; }
+  .opp-name { font-weight: 500; }
+  .opp-created { font-size: 11px; color: var(--text-faint); margin-top: 2px; white-space: nowrap; }
+  .na-block { display: flex; flex-direction: column; }
+  .na-late { color: #c2566a; font-weight: 400; }
+  .na-late-sub { font-size: 11px; color: #c2566a; opacity: .8; margin-top: 1px; }
+  .na-ok { color: var(--text); }
   .detail-wrap { padding: 18px 28px 22px; }
   /* Timeline */
   .timeline {
@@ -1037,6 +1052,21 @@
               <span class="ftag" data-p="6">6 m</span>
               <span class="ftag" data-p="3">3 m</span>
               <span class="ftag" data-p="1">1 m</span>
+              <span class="dp">
+                <button class="ftag dp-trigger" id="dpTrigger" type="button">Dates précises</button>
+                <div class="dp-pop" id="dpPop">
+                  <div class="dp-head">
+                    <button class="dp-nav" id="dpPrev" type="button" aria-label="Mois précédent">&lsaquo;</button>
+                    <div class="dp-month" id="dpMonth"></div>
+                    <button class="dp-nav" id="dpNext" type="button" aria-label="Mois suivant">&rsaquo;</button>
+                  </div>
+                  <div class="dp-grid" id="dpGrid"></div>
+                  <div class="dp-foot">
+                    <button class="ftag" id="dpClear" type="button">Effacer</button>
+                    <button class="ftag" id="dpConfirm" type="button" style="background:var(--accent,#5b6cff); color:#fff; border-color:var(--accent,#5b6cff);">Confirmer</button>
+                  </div>
+                </div>
+              </span>
             </div>
           </div>
           <div class="filter-group">
@@ -1050,24 +1080,6 @@
           <div class="filter-group">
             <span class="filter-label">Statut</span>
             <div class="ftags" id="statusTags"></div>
-          </div>
-          <div class="filter-group">
-            <span class="filter-label">Création</span>
-            <div class="dp">
-              <button class="ftag dp-trigger" id="dpTrigger" type="button">Toutes les dates</button>
-              <div class="dp-pop" id="dpPop">
-                <div class="dp-head">
-                  <button class="dp-nav" id="dpPrev" type="button" aria-label="Mois précédent">&lsaquo;</button>
-                  <div class="dp-month" id="dpMonth"></div>
-                  <button class="dp-nav" id="dpNext" type="button" aria-label="Mois suivant">&rsaquo;</button>
-                </div>
-                <div class="dp-grid" id="dpGrid"></div>
-                <div class="dp-foot">
-                  <button class="ftag" id="dpClear" type="button">Effacer</button>
-                  <span class="muted" style="font-size:11px;">Cliquez début puis fin</span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -1170,7 +1182,11 @@
       <div class="card table-card">
         <div class="table-header">
           <div class="title">Opportunités</div>
-          <div style="display:flex; align-items:center; gap:14px;">
+          <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+            <div class="opp-search-wrap">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="oppSearch" class="opp-search" placeholder="Rechercher une opportunité…" autocomplete="off">
+            </div>
             <label class="opp-toggle"><span class="switch"><input type="checkbox" id="oppShowClosed"><span class="slider"></span></span> Inclure les fermées (gagné/perdu)</label>
             <div class="count"><span id="oppCount">0</span> affichée(s)</div>
           </div>
@@ -1185,7 +1201,8 @@
                 <th class="num">Montant</th>
                 <th class="num">Prob.</th>
                 <th>Statut</th>
-                <th>Date de suivi</th>
+                <th>Dernière modif.</th>
+                <th>Prochaine action</th>
               </tr>
             </thead>
             <tbody id="oppBody"></tbody>
@@ -1585,6 +1602,35 @@ function parseDateFR(s) {
   if (!m) return null;
   return new Date(parseInt(m[3]), parseInt(m[2]) - 1, parseInt(m[1]));
 }
+// Date robuste : accepte "DD-MM-YYYY", "YYYY-MM-DD" et "YYYY-MM-DD HH:MM:SS"
+function parseAnyDate(s) {
+  if (!s) return null;
+  const v = String(s).trim();
+  let m = v.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+  m = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+// Affiche une date au format JJ/MM/AAAA quelle que soit l'entrée
+function fmtDateShort(s) {
+  const d = parseAnyDate(s);
+  return d ? d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+}
+// Nombre de jours entre une date et aujourd'hui (positif = passé, négatif = futur)
+function daysFromToday(s) {
+  const d = parseAnyDate(s); if (!d) return null;
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  const dd = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  return Math.round((t - dd) / 86400000);
+}
+// Texte « il y a X jours / aujourd'hui »
+function relativeDays(s) {
+  const n = daysFromToday(s); if (n == null) return '';
+  if (n <= 0) return "aujourd'hui";
+  return n === 1 ? 'il y a 1 jour' : `il y a ${n} jours`;
+}
 function fmtEUR(v) {
   return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(Math.round(v)) + ' €';
 }
@@ -1639,6 +1685,7 @@ function normalizeFromJSON(data) {
       percentage: parseFloat(o.percentage || '0') || 0,
       status: normalizeStatus(o.opportunity_status || o.statut || ''),
       followUp: o.updated_at || '',
+      nextAction: o.next_action_date || '',
       createdAt: o.created_at || '',
       userId: o.user_id,
       userFirst: o.user_first_name || '',
@@ -1669,6 +1716,7 @@ function normalizeFromCSV(text) {
       percentage: parseFloat(row['Pourcentage'] || '0') || 0,
       status: normalizeStatus(row['Statut'] || ''),
       followUp: row['Date de suivi'] || '',
+      nextAction: row['Date de prochaine action'] || '',
       createdAt: '',
       userId: null,
       userFirst: '',
@@ -1701,7 +1749,7 @@ function applyFilters(rows, opts = {}) {
     const now = new Date();
     const cutoff = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
     r = r.filter(x => {
-      const d = parseDateFR(x.followUp);
+      const d = parseDateFR(x.createdAt);   // période basée sur la date de création
       if (!d) return true;
       return d >= cutoff;
     });
@@ -1764,10 +1812,12 @@ function daysSince(s) {
   return Math.floor((Date.now() - d.getTime()) / 86400000);
 }
 const isActiveStatus = r => r.status !== 'Gagné' && r.status !== 'Perdu';
+const RELANCE_DAYS = 7;   // seuil « À relancer » : prochaine action dépassée depuis plus de N jours
 const ALERT_PREDICATES = {
   noAmount:     r => isActiveStatus(r) && r.amount === 0,
   noDate:       r => isActiveStatus(r) && !r.followUp,
-  stale:        r => { if (!isActiveStatus(r)) return false; const d = daysSince(r.followUp); return d != null && d > 21; },
+  overdue:      r => { if (!isActiveStatus(r)) return false; const n = daysFromToday(r.nextAction); return n != null && n > 0; },
+  stale:        r => { if (!isActiveStatus(r)) return false; const n = daysFromToday(r.nextAction); return n != null && n > RELANCE_DAYS; },
   devisNoProba: r => isActiveStatus(r) && r.status === 'Devis/Offre envoyé' && r.percentage === 0,
   longWait:     r => { if (r.status !== 'En attente/à relancer') return false; const d = daysSince(r.followUp); return d != null && d > 14; },
   noActivity:   r => isActiveStatus(r) && (!r.comments || r.comments.length === 0),
@@ -1790,12 +1840,20 @@ function computeAlerts(rows) {
   if (noDate.length > 0) {
     alerts.push({ key: 'noDate', sev: 'info', icon: ICON_CALENDAR_T, label: 'Sans date de suivi', count: noDate.length });
   }
+  const overdue = rows.filter(ALERT_PREDICATES.overdue);
+  if (overdue.length > 0) {
+    alerts.push({
+      key: 'overdue',
+      sev: overdue.length >= 5 ? 'critical' : 'warn',
+      icon: ICON_CLOCK_T, label: 'Prochaine action en retard', count: overdue.length,
+    });
+  }
   const stale = rows.filter(ALERT_PREDICATES.stale);
   if (stale.length > 0) {
     alerts.push({
       key: 'stale',
       sev: stale.length >= 5 ? 'critical' : 'warn',
-      icon: ICON_CLOCK_T, label: 'À relancer (>21j)', count: stale.length,
+      icon: ICON_CLOCK_T, label: `À relancer (>${RELANCE_DAYS}j de retard)`, count: stale.length,
     });
   }
   const devisNoProba = rows.filter(ALERT_PREDICATES.devisNoProba);
@@ -2233,25 +2291,32 @@ function renderActivity(r) {
 }
 let lastTableRows = [];      // dernières lignes passées à la table (pour le toggle)
 let showClosedOpps = false;  // inclure les opportunités fermées (Gagné/Perdu)
+let oppSearchTerm = '';      // recherche live par nom d'opportunité
 function renderTable(rows) {
   lastTableRows = rows || [];
   const body = document.getElementById('oppBody');
   // Par défaut : uniquement les opportunités encore actives (hors Gagné/Perdu)
   if (!showClosedOpps) rows = (rows || []).filter(r => r.status !== 'Gagné' && r.status !== 'Perdu');
+  // Recherche live (société, contact, nom de l'opportunité)
+  const q = (oppSearchTerm || '').trim().toLowerCase();
+  if (q) rows = rows.filter(r =>
+    (r.company || '').toLowerCase().includes(q) ||
+    (r.name || '').toLowerCase().includes(q) ||
+    (r.contact || '').toLowerCase().includes(q));
   document.getElementById('oppCount').textContent = rows.length;
-  // Priorité aux leads à relancer : ceux sans suivi en haut, puis du suivi le
-  // plus ancien au plus récent (les récemment suivis en bas).
+  // Priorité aux leads à traiter : ceux sans prochaine action planifiée en haut,
+  // puis de l'échéance la plus proche/dépassée à la plus lointaine.
   const sorted = rows.slice().sort((a, b) => {
-    const da = parseDateFR(a.followUp);
-    const db = parseDateFR(b.followUp);
+    const da = parseAnyDate(a.nextAction);
+    const db = parseAnyDate(b.nextAction);
     if (!da && !db) return 0;
-    if (!da) return -1;   // pas (encore) suivi → en priorité
+    if (!da) return -1;   // aucune action planifiée → en priorité
     if (!db) return 1;
-    return da - db;        // suivi le plus ancien d'abord
+    return da - db;        // échéance la plus proche d'abord
   });
   body.innerHTML = '';
   if (!sorted.length) {
-    body.innerHTML = '<tr><td colspan="7" class="empty">Aucune opportunité pour ce filtre.</td></tr>';
+    body.innerHTML = '<tr><td colspan="8" class="empty">Aucune opportunité pour ce filtre.</td></tr>';
     return;
   }
   sorted.forEach(r => {
@@ -2261,19 +2326,27 @@ function renderTable(rows) {
     const initialsHtml = r.userId != null
       ? `<span class="avatar" style="background:${avatarColor(r.userId)}; width:22px; height:22px; font-size:10px;">${initials(r.userFirst, r.userLast)}</span>`
       : '';
+    const createdSub = r.createdAt ? `<div class="opp-created">Créé ${escapeHTML(relativeDays(r.createdAt))}</div>` : '';
+    const naDays = daysFromToday(r.nextAction);
+    const naLate = naDays != null && naDays > 0;   // échéance passée = en retard
+    const naCell = r.nextAction
+      ? `<div class="na-block"><span class="${naLate ? 'na-late' : 'na-ok'}">${escapeHTML(fmtDateShort(r.nextAction))}</span>` +
+        `${naLate ? `<span class="na-late-sub">en retard depuis ${naDays} jour${naDays > 1 ? 's' : ''}</span>` : ''}</div>`
+      : '<span class="muted">—</span>';
     tr.innerHTML = `
-      <td>${CHEV_SVG}${escapeHTML(r.company)}</td>
+      <td><div class="opp-name-cell">${CHEV_SVG}<div class="opp-name-block"><span class="opp-name">${escapeHTML(r.company)}</span>${createdSub}</div></div></td>
       <td>${escapeHTML(r.contact)}</td>
       <td><div class="admin-cell">${initialsHtml}<span>${escapeHTML(r.userName)}</span></div></td>
       <td class="num">${r.amount > 0 ? fmtEUR(r.amount) : '<span class="muted">—</span>'}</td>
       <td class="num">${r.percentage}%</td>
       <td><span class="badge" style="background:${sbc.bg}; color:${sbc.fg};">${escapeHTML(r.status)}</span></td>
-      <td class="muted">${escapeHTML(r.followUp || '—')}</td>
+      <td class="muted">${escapeHTML(fmtDateShort(r.followUp) || '—')}</td>
+      <td>${naCell}</td>
     `;
     body.appendChild(tr);
     const detail = document.createElement('tr');
     detail.className = 'detail-row hidden';
-    detail.innerHTML = `<td colspan="7"></td>`;
+    detail.innerHTML = `<td colspan="8"></td>`;
     body.appendChild(detail);
     tr.addEventListener('click', () => {
       const open = tr.classList.toggle('expanded');
@@ -2289,6 +2362,12 @@ function renderTable(rows) {
 (function wireOppToggle() {
   const cb = document.getElementById('oppShowClosed');
   if (cb) cb.addEventListener('change', () => { showClosedOpps = cb.checked; renderTable(lastTableRows); });
+  const search = document.getElementById('oppSearch');
+  if (search) search.addEventListener('input', () => {
+    oppSearchTerm = search.value;
+    renderTable(lastTableRows);
+    const el = document.getElementById('oppSearch'); if (el) { el.focus(); }   // garde le focus après re-render
+  });
 })();
 /* ======================== Wiring ======================== */
 function populateStatusFilter() {
@@ -2314,7 +2393,10 @@ function toggleStatus(st) {
 
 // Synchronise l'affichage des contrôles de filtres avec l'état courant
 function syncFilterControls() {
-  document.querySelectorAll('#periodTags .ftag').forEach(b => b.classList.toggle('active', parseInt(b.dataset.p) === periodFilterValue));
+  document.querySelectorAll('#periodTags .ftag').forEach(b => {
+    if (b.dataset.p === undefined) return;   // le bouton calendrier garde son propre état
+    b.classList.toggle('active', parseInt(b.dataset.p) === periodFilterValue && !(dateFrom || dateTo));
+  });
   document.querySelectorAll('#amountTags .ftag').forEach(b => b.classList.toggle('active', b.dataset.a === amountFilter));
   document.querySelectorAll('#statusTags .ftag').forEach(b => b.classList.toggle('active', statusFilterSet.includes(b.dataset.st)));
 }
@@ -2522,8 +2604,11 @@ if (filterToggle) filterToggle.addEventListener('click', () => {
 // Filtre Période (tag — sélection unique)
 const periodTags = document.getElementById('periodTags');
 if (periodTags) periodTags.addEventListener('click', e => {
-  const t = e.target.closest('.ftag'); if (!t) return;
+  const t = e.target.closest('.ftag'); if (!t || t.dataset.p === undefined) return;  // ignore le calendrier
   periodFilterValue = parseInt(t.dataset.p);
+  dateFrom = dateTo = null;   // exclusif avec la plage de dates précises
+  if (typeof dpUpdateTrigger === 'function') dpUpdateTrigger();
+  if (typeof dpRender === 'function') dpRender();
   syncFilterControls();
   refresh();
 });
@@ -2548,7 +2633,7 @@ function dpFmt(d) { return d ? `${String(d.getDate()).padStart(2,'0')}/${String(
 function dpUpdateTrigger() {
   const t = document.getElementById('dpTrigger'); if (!t) return;
   if (dateFrom || dateTo) { t.textContent = `${dpFmt(dateFrom)} → ${dpFmt(dateTo)}`; t.classList.add('active'); }
-  else { t.textContent = 'Toutes les dates'; t.classList.remove('active'); }
+  else { t.textContent = 'Dates précises'; t.classList.remove('active'); }
 }
 function dpRender() {
   const grid = document.getElementById('dpGrid'); const monthEl = document.getElementById('dpMonth');
@@ -2575,14 +2660,28 @@ function dpRender() {
 }
 const dpTrigger = document.getElementById('dpTrigger');
 const dpPop = document.getElementById('dpPop');
-if (dpTrigger) dpTrigger.addEventListener('click', e => { e.stopPropagation(); dpRender(); dpPop.classList.toggle('open'); });
+// Repositionne le calendrier pour qu'il ne déborde pas de l'écran
+function dpPosition() {
+  if (!dpPop || !dpPop.classList.contains('open')) return;
+  dpPop.style.left = '0'; dpPop.style.right = 'auto'; dpPop.style.top = 'calc(100% + 6px)'; dpPop.style.bottom = 'auto';
+  const r = dpPop.getBoundingClientRect();
+  const vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+  if (r.right > vw - 8) { dpPop.style.left = 'auto'; dpPop.style.right = '0'; }
+  if (r.bottom > vh - 8) { dpPop.style.top = 'auto'; dpPop.style.bottom = 'calc(100% + 6px)'; }
+}
+if (dpTrigger) dpTrigger.addEventListener('click', e => { e.stopPropagation(); dpRender(); dpPop.classList.toggle('open'); dpPosition(); });
+// Un clic à l'intérieur du calendrier ne doit jamais le fermer (sinon dpRender détache la cible)
+if (dpPop) dpPop.addEventListener('click', e => e.stopPropagation());
 document.addEventListener('click', e => { if (dpPop && dpPop.classList.contains('open') && !e.target.closest('.dp')) dpPop.classList.remove('open'); });
+window.addEventListener('resize', dpPosition);
+window.addEventListener('scroll', dpPosition, true);
 const dpPrev = document.getElementById('dpPrev'), dpNext = document.getElementById('dpNext');
 if (dpPrev) dpPrev.addEventListener('click', () => { dpViewMonth--; if (dpViewMonth < 0) { dpViewMonth = 11; dpViewYear--; } dpRender(); });
 if (dpNext) dpNext.addEventListener('click', () => { dpViewMonth++; if (dpViewMonth > 11) { dpViewMonth = 0; dpViewYear++; } dpRender(); });
 const dpGrid = document.getElementById('dpGrid');
 if (dpGrid) dpGrid.addEventListener('click', e => {
   const c = e.target.closest('.dp-day[data-day]'); if (!c) return;
+  periodFilterValue = 0;   // exclusif avec les presets de période
   const clicked = new Date(dpViewYear, dpViewMonth, parseInt(c.dataset.day), 0, 0, 0);
   if (!dateFrom || (dateFrom && dateTo)) { dateFrom = clicked; dateTo = null; }
   else {
@@ -2591,11 +2690,14 @@ if (dpGrid) dpGrid.addEventListener('click', e => {
     dateFrom = new Date(a.getFullYear(), a.getMonth(), a.getDate(), 0, 0, 0);
     dateTo = new Date(b.getFullYear(), b.getMonth(), b.getDate(), 23, 59, 59);
   }
-  dpRender(); dpUpdateTrigger(); refresh();
-  if (dateFrom && dateTo) setTimeout(() => dpPop.classList.remove('open'), 150);
+  dpRender(); dpUpdateTrigger(); syncFilterControls(); refresh();
+  dpPosition();
+  // Reste ouvert : se ferme uniquement via « Confirmer » (ou clic en dehors).
 });
 const dpClear = document.getElementById('dpClear');
-if (dpClear) dpClear.addEventListener('click', () => { dateFrom = dateTo = null; dpRender(); dpUpdateTrigger(); refresh(); });
+if (dpClear) dpClear.addEventListener('click', () => { dateFrom = dateTo = null; periodFilterValue = 0; dpRender(); dpUpdateTrigger(); syncFilterControls(); refresh(); });
+const dpConfirm = document.getElementById('dpConfirm');
+if (dpConfirm) dpConfirm.addEventListener('click', () => { dpPop.classList.remove('open'); });
 function renderChartTabs() {
   const wrap = document.getElementById('chartTabs');
   if (!wrap) return;
