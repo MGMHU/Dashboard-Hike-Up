@@ -1935,6 +1935,8 @@ function trendArrow(cur, prev, inverse = false) {
 // Opportunités gagnées filtrées sur la DATE DE CLÔTURE (et non de création)
 // pour le KPI « Chiffre gagné ». Réplique les autres filtres (commercial, montant…).
 function wonRowsForKpi() {
+  // Respecte un éventuel filtre Statut : si « Gagné » est exclu, aucun gagné compté
+  if (statusFilterSet.length && !statusFilterSet.includes('Gagné')) return [];
   let r = (rawRows || []).filter(x => x.status === 'Gagné');
   if (todayOnly) r = r.filter(hadActivityToday);
   if (selectedUserId !== null) r = r.filter(x => x.userId === selectedUserId);
