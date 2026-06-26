@@ -267,6 +267,8 @@
   .filter-group { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
   .filter-label { font-size: 12px; color: var(--text-faint); min-width: 58px; padding-top: 6px; }
   .ftags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .period-top { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin: -6px 2px 12px; }
+  .period-top .filter-label { min-width: 0; padding-top: 0; }
   .ftag {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 999px;
@@ -278,15 +280,17 @@
   .ftag .ftag-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .date-input { width: auto; padding: 6px 10px; font-size: 12.5px; }
   .dp { position: relative; display: inline-block; }
-  .dp-pop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 40; background: #fff; border: 1px solid var(--border-strong); border-radius: 12px; box-shadow: var(--shadow); padding: 12px; width: 250px; display: none; }
+  .dp-pop { position: absolute; right: 0; left: auto; top: calc(100% + 6px); z-index: 40; background: #fff; border: 1px solid var(--border-strong); border-radius: 12px; box-shadow: var(--shadow); padding: 12px; width: 260px; box-sizing: border-box; display: none; }
   .dp-pop.open { display: block; }
+  .dp-dow-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 2px; }
+  .dp-dow-row span { font-size: 10px; color: var(--text-faint); text-align: center; padding: 4px 0; }
   .dp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .dp-month { font-size: 13px; font-weight: 600; text-transform: capitalize; }
   .dp-nav { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 18px; width: 26px; height: 26px; border-radius: 6px; line-height: 1; }
   .dp-nav:hover { background: #f1f2f5; color: var(--text); }
-  .dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-  .dp-dow { font-size: 10px; color: var(--text-faint); text-align: center; padding: 4px 0; }
-  .dp-day { font-size: 12px; text-align: center; padding: 6px 0; border-radius: 7px; cursor: pointer; color: var(--text); user-select: none; }
+  .dp-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: 30px; gap: 1px; }
+  .dp-dow { font-size: 10px; color: var(--text-faint); text-align: center; padding: 4px 0; min-width: 0; }
+  .dp-day { font-size: 12px; text-align: center; padding: 6px 0; border-radius: 6px; cursor: pointer; color: var(--text); user-select: none; min-width: 0; display: flex; align-items: center; justify-content: center; }
   .dp-day:hover { background: #f1f2f5; }
   .dp-day.empty { visibility: hidden; }
   .dp-day.in-range { background: var(--accent-soft); border-radius: 0; }
@@ -1024,6 +1028,32 @@
           <div class="last-update" id="lastUpdate"></div>
         </div>
       </div>
+      <!-- Période (au-dessus de la carte Filtres, aligné à droite) -->
+      <div class="period-top">
+        <span class="filter-label">Période</span>
+        <div class="ftags" id="periodTags">
+          <span class="ftag active" data-p="0">Tout</span>
+          <span class="ftag" data-p="12">12 m</span>
+          <span class="ftag" data-p="6">6 m</span>
+          <span class="ftag" data-p="3">3 m</span>
+          <span class="ftag" data-p="1">1 m</span>
+          <span class="dp">
+            <button class="ftag dp-trigger" id="dpTrigger" type="button">Dates précises</button>
+            <div class="dp-pop" id="dpPop">
+              <div class="dp-head">
+                <button class="dp-nav" id="dpPrev" type="button" aria-label="Mois précédent">&lsaquo;</button>
+                <div class="dp-month" id="dpMonth"></div>
+                <button class="dp-nav" id="dpNext" type="button" aria-label="Mois suivant">&rsaquo;</button>
+              </div>
+              <div class="dp-grid" id="dpGrid"></div>
+              <div class="dp-foot">
+                <button class="ftag" id="dpClear" type="button">Effacer</button>
+                <button class="ftag" id="dpConfirm" type="button" style="background:var(--accent,#5b6cff); color:#fff; border-color:var(--accent,#5b6cff);">Confirmer</button>
+              </div>
+            </div>
+          </span>
+        </div>
+      </div>
       <!-- Filtres -->
       <div class="card commercial-card">
         <div class="commercial-head">
@@ -1044,31 +1074,6 @@
         <div id="filterAdvanced" style="display:none;">
         <!-- Série de filtres (tags) -->
         <div class="filter-bar">
-          <div class="filter-group">
-            <span class="filter-label">Période</span>
-            <div class="ftags" id="periodTags">
-              <span class="ftag active" data-p="0">Tout</span>
-              <span class="ftag" data-p="12">12 m</span>
-              <span class="ftag" data-p="6">6 m</span>
-              <span class="ftag" data-p="3">3 m</span>
-              <span class="ftag" data-p="1">1 m</span>
-              <span class="dp">
-                <button class="ftag dp-trigger" id="dpTrigger" type="button">Dates précises</button>
-                <div class="dp-pop" id="dpPop">
-                  <div class="dp-head">
-                    <button class="dp-nav" id="dpPrev" type="button" aria-label="Mois précédent">&lsaquo;</button>
-                    <div class="dp-month" id="dpMonth"></div>
-                    <button class="dp-nav" id="dpNext" type="button" aria-label="Mois suivant">&rsaquo;</button>
-                  </div>
-                  <div class="dp-grid" id="dpGrid"></div>
-                  <div class="dp-foot">
-                    <button class="ftag" id="dpClear" type="button">Effacer</button>
-                    <button class="ftag" id="dpConfirm" type="button" style="background:var(--accent,#5b6cff); color:#fff; border-color:var(--accent,#5b6cff);">Confirmer</button>
-                  </div>
-                </div>
-              </span>
-            </div>
-          </div>
           <div class="filter-group">
             <span class="filter-label">Montant</span>
             <div class="ftags" id="amountTags">
@@ -1653,7 +1658,7 @@ let rawRows = [];
 let chartInstance = null;
 let chartMode = 'created';
 const ALL_VIEWS = [
-  { key: 'created', label: 'Pipeline créé', fixed: true },
+  { key: 'created', label: 'Opportunités créées', fixed: true },
   { key: 'won', label: 'CA gagné', fixed: true },
   { key: 'closing', label: 'Closing par mois' },
   { key: 'commercial', label: 'Par commercial' },
@@ -2131,7 +2136,7 @@ function renderChart(rows) {
   if (chartInstance) chartInstance.destroy();
   const subEl = document.querySelector('.chart-sub'); const titleEl = document.querySelector('.chart-title');
   const TITLES = {
-    created: ['Pipeline créé par mois', 'Montant des opportunités créées par mois (date de création)'],
+    created: ['Opportunités créées par mois', 'Nombre des opportunités créées par mois (date de création)'],
     won: ['CA gagné par mois', 'Montant des opportunités gagnées par mois (date de clôture ≈ suivi)'],
     closing: ['Closing par mois', 'Opportunités créées vs clôturées (gagné/perdu) par mois'],
     source: ['Répartition par source', 'Montant des opportunités par source'],
@@ -2656,19 +2661,14 @@ function dpRender() {
     if (fs != null && te == null && t === fs) cls += ' range-start range-end';
     html += `<div class="${cls}" data-day="${d}">${d}</div>`;
   }
+  // Complète toujours à 6 semaines (42 cases) pour une hauteur constante
+  for (let i = offset + nDays; i < 42; i++) html += '<div class="dp-day empty"></div>';
   grid.innerHTML = html;
 }
 const dpTrigger = document.getElementById('dpTrigger');
 const dpPop = document.getElementById('dpPop');
-// Repositionne le calendrier pour qu'il ne déborde pas de l'écran
-function dpPosition() {
-  if (!dpPop || !dpPop.classList.contains('open')) return;
-  dpPop.style.left = '0'; dpPop.style.right = 'auto'; dpPop.style.top = 'calc(100% + 6px)'; dpPop.style.bottom = 'auto';
-  const r = dpPop.getBoundingClientRect();
-  const vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
-  if (r.right > vw - 8) { dpPop.style.left = 'auto'; dpPop.style.right = '0'; }
-  if (r.bottom > vh - 8) { dpPop.style.top = 'auto'; dpPop.style.bottom = 'calc(100% + 6px)'; }
-}
+// Le calendrier est positionné en CSS (ancré à droite du bouton, ouverture vers la gauche).
+function dpPosition() { /* no-op : positionnement géré par le CSS (.dp-pop right:0) */ }
 if (dpTrigger) dpTrigger.addEventListener('click', e => { e.stopPropagation(); dpRender(); dpPop.classList.toggle('open'); dpPosition(); });
 // Un clic à l'intérieur du calendrier ne doit jamais le fermer (sinon dpRender détache la cible)
 if (dpPop) dpPop.addEventListener('click', e => e.stopPropagation());
@@ -2676,8 +2676,8 @@ document.addEventListener('click', e => { if (dpPop && dpPop.classList.contains(
 window.addEventListener('resize', dpPosition);
 window.addEventListener('scroll', dpPosition, true);
 const dpPrev = document.getElementById('dpPrev'), dpNext = document.getElementById('dpNext');
-if (dpPrev) dpPrev.addEventListener('click', () => { dpViewMonth--; if (dpViewMonth < 0) { dpViewMonth = 11; dpViewYear--; } dpRender(); });
-if (dpNext) dpNext.addEventListener('click', () => { dpViewMonth++; if (dpViewMonth > 11) { dpViewMonth = 0; dpViewYear++; } dpRender(); });
+if (dpPrev) dpPrev.addEventListener('click', e => { e.stopPropagation(); dpViewMonth--; if (dpViewMonth < 0) { dpViewMonth = 11; dpViewYear--; } dpRender(); dpPosition(); });
+if (dpNext) dpNext.addEventListener('click', e => { e.stopPropagation(); dpViewMonth++; if (dpViewMonth > 11) { dpViewMonth = 0; dpViewYear++; } dpRender(); dpPosition(); });
 const dpGrid = document.getElementById('dpGrid');
 if (dpGrid) dpGrid.addEventListener('click', e => {
   const c = e.target.closest('.dp-day[data-day]'); if (!c) return;
