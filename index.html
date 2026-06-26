@@ -2197,7 +2197,7 @@ function renderChart(rows) {
   const dualOpts = () => ({ ...common, scales: { x: common.scales.x, y: { ...common.scales.y }, y1: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: '#8a8a93', font: { size: 11 }, precision: 0 } } } });
   if (chartMode === 'created' || chartMode === 'won') {
     const isWonView = chartMode === 'won';
-    const dateOf = isWonView ? (r => parseDateFR(r.followUp)) : (r => parseDateFR(r.createdAt));
+    const dateOf = isWonView ? (r => rowWonDate(r)) : (r => parseDateFR(r.createdAt));
     const filt = isWonView ? (r => r.status === 'Gagné') : null;
     const amount = monthlyAmount(rows, dateOf, filt);
     const count = monthlyCount(rows, dateOf, filt);
