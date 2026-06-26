@@ -2172,7 +2172,7 @@ function renderChart(rows) {
   const subEl = document.querySelector('.chart-sub'); const titleEl = document.querySelector('.chart-title');
   const TITLES = {
     created: ['Opportunités créées par mois', 'Nombre des opportunités créées par mois (date de création)'],
-    won: ['CA gagné par mois', 'Montant des opportunités gagnées par mois (date de clôture ≈ suivi)'],
+    won: ['CA gagné par mois', 'Montant et nombre des opportunités gagnées par mois (date de clôture / won_at)'],
     closing: ['Closing par mois', 'Opportunités créées vs clôturées (gagné/perdu) par mois'],
     source: ['Répartition par source', 'Montant des opportunités par source'],
     commercial: ['Répartition par commercial', 'Montant des opportunités par commercial'],
@@ -2197,10 +2197,13 @@ function renderChart(rows) {
   const dualOpts = () => ({ ...common, scales: { x: common.scales.x, y: { ...common.scales.y }, y1: { position: 'right', beginAtZero: true, grid: { display: false }, ticks: { color: '#8a8a93', font: { size: 11 }, precision: 0 } } } });
   if (chartMode === 'created' || chartMode === 'won') {
     const isWonView = chartMode === 'won';
+    // Gagné : on part des gagnées filtrées sur la date de gain (won_at) + filtres actifs,
+    // bucketisées par mois sur cette même date. Créées : par date de création.
+    const base = isWonView ? wonRowsForKpi() : rows;
     const dateOf = isWonView ? (r => rowWonDate(r)) : (r => parseDateFR(r.createdAt));
-    const filt = isWonView ? (r => r.status === 'Gagné') : null;
-    const amount = monthlyAmount(rows, dateOf, filt);
-    const count = monthlyCount(rows, dateOf, filt);
+    const filt = isWonView ? null : null;
+    const amount = monthlyAmount(base, dateOf, filt);
+    const count = monthlyCount(base, dateOf, filt);
     const col = isWonView ? '#1f9c52' : '#5b6cff';
     const barCol = isWonView ? 'rgba(31,156,82,0.22)' : 'rgba(91,108,255,0.20)';
     chartInstance = new Chart(ctx, {
