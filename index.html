@@ -3972,41 +3972,27 @@ async function initApp() {
     if (tog) { const n = tog.dataset.constoggle; expandedConsultants[n] = !expandedConsultants[n]; renderClientNav(); return; }
     const consRow = e.target.closest('.cons-row');
     if (consRow && !e.target.closest('.client-nav-item')) {
+      // Clic sur un consultant = déplier / replier sa liste de clients uniquement.
+      // La sélection des clients reste manuelle (clic sur chaque client).
       const name = consRow.dataset.cons;
-      const isOpen = !!expandedConsultants[name] || adminActiveConsultant === name;
-      if (isOpen) {
-        // 2e clic : on referme le déploiement et on revient à tous les clients
-        expandedConsultants[name] = false;
-        adminActiveConsultant = null;
-        adminViewClientIds = adminClients.map(c => c.id);
-      } else {
-        // 1er clic : on déploie les clients de ce consultant
-        expandedConsultants[name] = true;
-        adminActiveConsultant = name;
-        adminViewClientIds = adminClients.filter(c => (c.consultant || 'Sans consultant') === name).map(c => c.id);
-      }
-      resetDashboardFilters();
+      expandedConsultants[name] = !expandedConsultants[name];
       renderClientNav();
-      await loadAdminView();
       return;
     }
     const item = e.target.closest('.client-nav-item');
     if (!item) return;
     const id = item.dataset.id;
-    const wasSingle = !adminActiveConsultant && adminViewClientIds.length === 1 && adminViewClientIds[0] === id;
     // Garde le groupe consultant déployé pour éviter que la liste « saute »
     const _cli = adminClients.find(c => c.id === id);
     if (_cli) expandedConsultants[_cli.consultant || 'Sans consultant'] = true;
     adminActiveConsultant = null;
-    if (e.metaKey || e.ctrlKey) {
-      const allOn = adminViewClientIds.length === adminClients.length;
-      let base = allOn ? [] : adminViewClientIds.slice();
-      if (base.includes(id)) base = base.filter(x => x !== id);
-      else base.push(id);
-      adminViewClientIds = base.length ? base : [id];
-    } else {
-      adminViewClientIds = wasSingle ? adminClients.map(c => c.id) : [id];
-    }
+    // Clic = bascule (sélectionne / désélectionne). Plusieurs clics cumulent.
+    const allOn = adminViewClientIds.length === adminClients.length;
+    let base = allOn ? [] : adminViewClientIds.slice();   // depuis « Vue d'ensemble », on repart de zéro
+    if (base.includes(id)) base = base.filter(x => x !== id);   // déjà sélectionné → on retire
+    else base.push(id);                                          // sinon → on ajoute
+    // Plus rien de sélectionné → retour à la vue d'ensemble (tous les clients)
+    adminViewClientIds = base.length ? base : adminClients.map(c => c.id);
     resetDashboardFilters();
     renderClientNav();
     await loadAdminView();
