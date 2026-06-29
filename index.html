@@ -28,7 +28,16 @@
     --st-perdu-bg: #fde2e2;       --st-perdu-fg: #a02323;
   }
   * { box-sizing: border-box; }
+  /* Curseur main sur tout ce qui est cliquable (les <button> sont en flèche par défaut) */
+  button, label.btn, summary, [role="button"], a,
+  .ftag, .chip, .tab, .tab-bar .t, .acc-head, .cons-row, .cons-name, .client-nav-item, .client-nav-name,
+  .status-bar, .opp-row, .dp-day[data-day], .dp-nav, .cap-chip, .switch, .opp-toggle,
+  .tr-label, .tr-more, .ta-expand, .ta-sort button, .help, .filter-toggle, .reset-btn,
+  #navOverview, .nav-item { cursor: pointer !important; }
+  button:disabled, .btn:disabled, input:disabled, .pane-locked .textarea, .pane-locked #adminFileLabel { cursor: not-allowed !important; }
   html, body { margin: 0; padding: 0; }
+  html { overflow-y: scroll; scrollbar-gutter: stable; }   /* scrollbar verticale toujours réservée : aucun décalage quand elle apparaît */
+  body { overflow-x: hidden; }                             /* empêche une scrollbar horizontale surgissante (saut) */
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
