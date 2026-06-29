@@ -86,7 +86,9 @@
     font-size: 13px; color: var(--text);
   }
   .client-nav-item:hover { background: #f5f6f8; }
-  .client-nav-item.active { background: #f1f2f5; font-weight: 600; }
+  .client-nav-item.active { background: var(--accent-soft); color: var(--accent, #5b6cff); }
+  .client-nav-item.active .client-nav-name { color: var(--accent, #5b6cff); }
+  .client-nav-item.active .client-nav-logo { border-color: var(--accent, #5b6cff); }
   .client-nav-logo {
     width: 28px; height: 28px; border-radius: 8px; overflow: hidden; flex-shrink: 0;
     background: #fff; border: 1px solid var(--border-strong);
@@ -96,7 +98,7 @@
   .client-nav-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cons-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 8px; cursor: pointer; font-size: 12.5px; color: var(--text); }
   .cons-row:hover { background: #f5f6f8; }
-  .cons-row.active { background: #eef0ff; font-weight: 600; }
+  .cons-row.active { background: var(--accent-soft); color: var(--accent, #5b6cff); }
   .cons-toggle { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; }
   .cons-toggle svg { transition: transform 0.15s; }
   .cons-toggle.open svg { transform: rotate(90deg); }
@@ -104,7 +106,7 @@
   .cons-count { font-size: 10.5px; color: var(--text-faint); background: #f1f2f5; border-radius: 999px; padding: 1px 7px; }
   .client-nav-item.sub { margin-left: 11px; padding-left: 12px; border-left: 2px solid var(--border); border-top-left-radius: 0; border-bottom-left-radius: 0; }
   .client-nav-item.sub:hover { border-left-color: var(--border-strong); }
-  .client-nav-item.sub.active { border-left-color: var(--accent, #5b6bff); }
+  .client-nav-item.sub.active { border-left-color: var(--accent, #5b6cff); border-left-width: 3px; padding-left: 11px; }
   .cons-pic { width: 22px; height: 22px; border-radius: 50%; overflow: hidden; flex-shrink: 0; background: #eef0ff; border: 1px solid var(--border-strong); display: inline-flex; align-items: center; justify-content: center; }
   .cons-pic img { width: 100%; height: 100%; object-fit: cover; }
   .cons-init { font-size: 9px; font-weight: 600; color: #1a1a1f; }
@@ -3992,6 +3994,9 @@ async function initApp() {
     if (!item) return;
     const id = item.dataset.id;
     const wasSingle = !adminActiveConsultant && adminViewClientIds.length === 1 && adminViewClientIds[0] === id;
+    // Garde le groupe consultant déployé pour éviter que la liste « saute »
+    const _cli = adminClients.find(c => c.id === id);
+    if (_cli) expandedConsultants[_cli.consultant || 'Sans consultant'] = true;
     adminActiveConsultant = null;
     if (e.metaKey || e.ctrlKey) {
       const allOn = adminViewClientIds.length === adminClients.length;
