@@ -233,6 +233,43 @@
   .filter-toggle.open svg { transform: rotate(180deg); }
 
   /* Série de filtres — tags uniformes */
+  /* Constructeur de filtres personnalisés */
+  .cf-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+  .cf-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .cf-group { display: inline-flex; align-items: center; gap: 4px; padding: 3px; background: var(--accent-soft); border-radius: 999px; }
+  .cf-conn { font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 2px 7px; border-radius: 999px; user-select: none; }
+  .cf-conn-and { color: var(--text-muted); background: #eceef2; }
+  .cf-conn-or { color: var(--accent, #5b6cff); background: #fff; border: 1px solid var(--accent, #5b6cff); }
+  .cf-add-wrap { position: relative; }
+  .cf-add { font: inherit; font-size: 12.5px; font-weight: 600; color: var(--accent, #5b6cff); background: var(--accent-soft); border: 1px dashed var(--accent, #5b6cff); border-radius: 999px; padding: 5px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .cf-add:hover { filter: brightness(0.98); }
+  .cf-menu { position: absolute; left: 0; top: calc(100% + 6px); z-index: 60; width: 250px; max-height: 320px; background: #fff; border: 1px solid var(--border-strong); border-radius: 12px; box-shadow: 0 12px 36px rgba(16,17,21,0.16); display: none; flex-direction: column; overflow: hidden; }
+  .cf-menu.open { display: flex; }
+  .cf-search { padding: 10px; border-bottom: 1px solid var(--border); }
+  .cf-search input { width: 100%; font: inherit; font-size: 12.5px; border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 10px; outline: none; }
+  .cf-search input:focus { border-color: var(--accent, #5b6cff); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .cf-list { overflow-y: auto; padding: 6px; }
+  .cf-group { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-faint); font-weight: 600; padding: 8px 8px 4px; }
+  .cf-field { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text); }
+  .cf-field:hover { background: var(--accent-soft); }
+  .cf-chip { position: relative; display: inline-flex; align-items: center; gap: 0; background: #fff; border: 1px solid var(--border-strong); border-radius: 999px; font-size: 12px; }
+  .cf-chip .cf-chip-main { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; cursor: pointer; border-radius: 999px 0 0 999px; }
+  .cf-chip .cf-chip-field { font-weight: 600; color: var(--text); }
+  .cf-chip .cf-chip-cond { color: var(--text-muted); }
+  .cf-chip .cf-chip-val { color: var(--accent, #5b6cff); font-weight: 600; }
+  .cf-chip .cf-chip-x { padding: 5px 9px 5px 6px; color: var(--text-faint); cursor: pointer; border-left: 1px solid var(--border); border-radius: 0 999px 999px 0; }
+  .cf-chip .cf-chip-x:hover { color: var(--danger, #d33b46); background: #faf0f1; }
+  .cf-pop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 60; width: 250px; background: #fff; border: 1px solid var(--border-strong); border-radius: 12px; box-shadow: 0 12px 36px rgba(16,17,21,0.16); padding: 12px; display: none; }
+  .cf-pop.open { display: block; }
+  .cf-op { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 5px 2px; cursor: pointer; color: var(--text); }
+  .cf-op input { accent-color: var(--accent, #5b6cff); }
+  .cf-val { margin: 8px 0; }
+  .cf-val select, .cf-val input { width: 100%; font: inherit; font-size: 12.5px; border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 10px; outline: none; }
+  .cf-multi { max-height: 150px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 4px; }
+  .cf-multi label { display: flex; align-items: center; gap: 7px; padding: 4px 6px; border-radius: 6px; font-size: 12.5px; cursor: pointer; }
+  .cf-multi label:hover { background: #f5f6f8; }
+  .cf-pop-foot { display: flex; justify-content: flex-end; margin-top: 6px; }
+  .cf-pop-foot button { font: inherit; font-size: 12.5px; font-weight: 600; color: #fff; background: var(--accent, #5b6cff); border: none; border-radius: 8px; padding: 7px 16px; cursor: pointer; }
   .filter-bar { display: flex; flex-direction: column; gap: 11px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
   .today-recap { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; margin: 2px 2px 14px; font-size: 11.5px; color: var(--text-faint); }
   .today-recap:empty { display: none; }
@@ -1070,7 +1107,7 @@
         <div class="commercial-head">
           <div>
             <div class="commercial-title">Filtres</div>
-            <div class="commercial-sub">Cliquez sur un commercial — flèche pour période, montant, statut.</div>
+            <div class="commercial-sub">Cliquez sur un commercial — flèche pour montant et statut.</div>
           </div>
           <div style="display:flex; align-items:center; gap:10px;">
             <button class="reset-btn" id="resetBtn">Réinitialiser</button>
@@ -1701,6 +1738,71 @@ let todayOnly = false;   // filtre « activité du jour » (clic sur « Aujourd'
 let todayActivityOpen = false;   // volet détaillé « activité du jour » (replié par défaut)
 let todayActivitySort = 'time';  // tri du volet : 'time' | 'type' | 'entity'
 let todayActivityExpanded = {};  // clusters de mouvements simultanés dépliés { "opp|HH:MM": true }
+let customFilters = [];          // filtres personnalisés : [{ id, field, op, values:[] }]
+// Champs disponibles pour construire des filtres
+const FILTER_FIELDS = [
+  { key: 'status',        label: 'Statut',                 type: 'cat',  group: 'Opportunité' },
+  { key: 'userName',      label: 'Commercial',             type: 'cat',  group: 'Opportunité' },
+  { key: 'source',        label: 'Source',                 type: 'cat',  group: 'Opportunité' },
+  { key: 'company',       label: 'Société',                type: 'text', group: 'Opportunité' },
+  { key: 'contact',       label: 'Contact',                type: 'text', group: 'Opportunité' },
+  { key: 'name',          label: "Nom de l'opportunité",   type: 'text', group: 'Opportunité' },
+  { key: 'refusalReason', label: 'Raison du refus',        type: 'cat',  group: 'Opportunité' },
+  { key: 'amount',        label: 'Montant',                type: 'num',  group: 'Chiffres' },
+  { key: 'percentage',    label: 'Probabilité (%)',        type: 'num',  group: 'Chiffres' },
+  { key: 'createdAt',     label: 'Date de création',       type: 'date', group: 'Dates' },
+  { key: 'nextAction',    label: 'Prochaine action',       type: 'date', group: 'Dates' },
+];
+function fieldDef(key) { return FILTER_FIELDS.find(f => f.key === key); }
+function rowFieldValue(r, key) {
+  if (key === 'wonDate') return rowWonDate(r);
+  return r ? r[key] : undefined;
+}
+function fieldDistinctValues(key) {
+  const set = new Set();
+  (rawRows || []).forEach(r => { const v = rowFieldValue(r, key); if (v != null && v !== '') set.add(String(v)); });
+  return Array.from(set).sort((a, b) => a.localeCompare(b, 'fr'));
+}
+// Évalue un filtre personnalisé sur une ligne
+function customMatch(filter, r) {
+  const def = fieldDef(filter.field); if (!def) return true;
+  const op = filter.op, val = filter.values || [];
+  let v = rowFieldValue(r, filter.field);
+  const empty = (v == null || v === '' || (def.type === 'date' && !v));
+  if (op === 'known') return !empty;
+  if (op === 'unknown') return empty;
+  if (def.type === 'num') {
+    const n = Number(v) || 0, a = Number(val[0]);
+    if (val[0] === '' || val[0] == null || isNaN(a)) return true;
+    if (op === 'is') return n === a;
+    if (op === 'isNot') return n !== a;
+    if (op === 'gt') return n >= a;
+    if (op === 'lt') return n <= a;
+    return true;
+  }
+  if (def.type === 'date') {
+    const d = (v instanceof Date) ? v : parseAnyDate(v);
+    const t = parseAnyDate(val[0]);
+    if (!t) return true; if (!d) return false;
+    if (op === 'after') return d >= t;
+    if (op === 'before') return d <= t;
+    return true;
+  }
+  const s = (v == null ? '' : String(v));
+  if (op === 'is') return s === val[0];
+  if (op === 'isNot') return s !== val[0];
+  if (op === 'oneOf') return val.length ? val.includes(s) : true;
+  if (op === 'notOneOf') return val.length ? !val.includes(s) : true;
+  if (op === 'contains') return s.toLowerCase().includes((val[0] || '').toLowerCase());
+  return true;
+}
+// Combinaison : OU entre filtres d'un même champ, ET entre champs différents
+function passesCustomFilters(r) {
+  if (!customFilters.length) return true;
+  const byField = {};
+  customFilters.forEach(f => { (byField[f.field] = byField[f.field] || []).push(f); });
+  return Object.keys(byField).every(k => byField[k].some(f => customMatch(f, r)));
+}
 /* ======================== Normalize input ======================== */
 function normalizeFromJSON(data) {
   const arr = Array.isArray(data) ? data : (data.opportunities || []);
@@ -1766,6 +1868,7 @@ function hadActivityToday(r) {
 function applyFilters(rows, opts = {}) {
   const months = periodFilterValue;
   let r = rows.slice();
+  if (customFilters.length) r = r.filter(passesCustomFilters);
   if (todayOnly) r = r.filter(hadActivityToday);
   if (selectedUserId !== null) r = r.filter(x => x.userId === selectedUserId);
   if (!opts.skipStatus) {
@@ -1810,7 +1913,7 @@ function renderCommercials() {
     const chip = document.createElement('div');
     chip.className = 'chip' + (selectedUserId === u.id ? ' active' : '');
     chip.innerHTML = `<span class="avatar" style="background:${avatarColor(u.id)}">${initials(u.first, u.last)}</span><span>${escapeHTML(u.name)}</span>`;
-    chip.onclick = () => { selectedUserId = u.id; updateSubtitle(); renderCommercials(); refresh(); };
+    chip.onclick = () => { selectedUserId = (selectedUserId === u.id) ? null : u.id; updateSubtitle(); renderCommercials(); refresh(); };
     row.appendChild(chip);
   });
 }
@@ -1949,6 +2052,7 @@ function wonRowsForKpi() {
   // Respecte un éventuel filtre Statut : si « Gagné » est exclu, aucun gagné compté
   if (statusFilterSet.length && !statusFilterSet.includes('Gagné')) return [];
   let r = (rawRows || []).filter(x => x.status === 'Gagné');
+  if (customFilters.length) r = r.filter(passesCustomFilters);
   if (todayOnly) r = r.filter(hadActivityToday);
   if (selectedUserId !== null) r = r.filter(x => x.userId === selectedUserId);
   if (amountFilter === 'with') r = r.filter(x => x.amount > 0);
@@ -2423,6 +2527,139 @@ function renderTable(rows) {
     const el = document.getElementById('oppSearch'); if (el) { el.focus(); }   // garde le focus après re-render
   });
 })();
+/* ===== Filtres personnalisés (constructeur) ===== */
+const CF_OP_LABELS = { is: 'est', isNot: "n'est pas", oneOf: 'parmi', notOneOf: 'pas parmi', contains: 'contient', gt: '≥', lt: '≤', after: 'après le', before: 'avant le', known: 'est renseigné', unknown: 'est vide' };
+function cfDefaultOp(type) { return type === 'cat' ? 'oneOf' : type === 'text' ? 'contains' : type === 'num' ? 'gt' : 'after'; }
+function cfOpsFor(type) {
+  return type === 'cat' ? ['is', 'isNot', 'oneOf', 'notOneOf', 'known', 'unknown']
+    : type === 'text' ? ['contains', 'is', 'isNot', 'known', 'unknown']
+    : type === 'num' ? ['is', 'isNot', 'gt', 'lt', 'known', 'unknown']
+    : ['after', 'before', 'known', 'unknown'];
+}
+function cfSummary(f) {
+  if (f.op === 'known' || f.op === 'unknown') return '';
+  const v = f.values || [];
+  if (f.op === 'oneOf' || f.op === 'notOneOf') return v.length ? (v.length <= 2 ? v.join(', ') : v.length + ' valeurs') : '…';
+  return v[0] || '…';
+}
+function cfChipHtml(f) {
+  const def = fieldDef(f.field);
+  const sum = cfSummary(f);
+  return `<div class="cf-chip" data-id="${f.id}">` +
+    `<span class="cf-chip-main"><span class="cf-chip-field">${escapeHTML(def ? def.label : f.field)}</span> ` +
+    `<span class="cf-chip-cond">${escapeHTML(CF_OP_LABELS[f.op] || f.op)}</span>` +
+    `${sum ? ` <span class="cf-chip-val">${escapeHTML(sum)}</span>` : ''}</span>` +
+    `<span class="cf-chip-x" data-x="${f.id}">✕</span></div>`;
+}
+function renderCustomFilters() {
+  const box = document.getElementById('cfChips'); if (!box) return;
+  // Groupe par champ (OU à l'intérieur, ET entre groupes), dans l'ordre d'apparition
+  const order = [], byField = {};
+  customFilters.forEach(f => { if (!byField[f.field]) { byField[f.field] = []; order.push(f.field); } byField[f.field].push(f); });
+  let html = '';
+  order.forEach((field, gi) => {
+    if (gi > 0) html += '<span class="cf-conn cf-conn-and">ET</span>';
+    html += '<span class="cf-group">';
+    byField[field].forEach((f, i) => {
+      if (i > 0) html += '<span class="cf-conn cf-conn-or">OU</span>';
+      html += cfChipHtml(f);
+    });
+    html += '</span>';
+  });
+  box.innerHTML = html;
+}
+function closeCfPop() { const p = document.getElementById('cfPop'); if (p) p.remove(); }
+function closeCfMenu() { const m = document.getElementById('cfFieldMenu'); if (m) m.classList.remove('open'); }
+function renderCfValue(f, def) {
+  const wrap = document.getElementById('cfValWrap'); if (!wrap) return;
+  if (f.op === 'known' || f.op === 'unknown') { wrap.innerHTML = ''; return; }
+  if (def.type === 'cat' && (f.op === 'oneOf' || f.op === 'notOneOf')) {
+    const vals = fieldDistinctValues(f.field);
+    wrap.innerHTML = '<div class="cf-multi">' + vals.map(v =>
+      `<label><input type="checkbox" value="${escapeHTML(v)}" ${f.values.includes(v) ? 'checked' : ''}> ${escapeHTML(v || '—')}</label>`).join('') + '</div>';
+    wrap.querySelectorAll('input').forEach(cb => cb.addEventListener('change', () => {
+      f.values = Array.from(wrap.querySelectorAll('input:checked')).map(x => x.value); refresh();
+    }));
+  } else if (def.type === 'cat' && (f.op === 'is' || f.op === 'isNot')) {
+    const vals = fieldDistinctValues(f.field);
+    wrap.innerHTML = `<select><option value="">— choisir —</option>${vals.map(v => `<option value="${escapeHTML(v)}" ${f.values[0] === v ? 'selected' : ''}>${escapeHTML(v)}</option>`).join('')}</select>`;
+    wrap.querySelector('select').addEventListener('change', e => { f.values = [e.target.value]; refresh(); });
+  } else if (def.type === 'date') {
+    const cur = f.values[0] ? (parseAnyDate(f.values[0]) ? new Date(parseAnyDate(f.values[0]).getTime() - parseAnyDate(f.values[0]).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '') : '';
+    wrap.innerHTML = `<input type="date" value="${cur}">`;
+    wrap.querySelector('input').addEventListener('change', e => { f.values = [e.target.value]; refresh(); });
+  } else if (def.type === 'num') {
+    wrap.innerHTML = `<input type="number" placeholder="Valeur" value="${escapeHTML(f.values[0] || '')}">`;
+    wrap.querySelector('input').addEventListener('input', e => { f.values = [e.target.value]; refresh(); });
+  } else {
+    wrap.innerHTML = `<input type="text" placeholder="Texte…" value="${escapeHTML(f.values[0] || '')}">`;
+    wrap.querySelector('input').addEventListener('input', e => { f.values = [e.target.value]; refresh(); });
+  }
+}
+function openCfEditor(id) {
+  closeCfPop();
+  const f = customFilters.find(x => x.id === id); if (!f) return;
+  const chip = document.querySelector(`.cf-chip[data-id="${id}"]`); if (!chip) return;
+  chip.style.position = 'relative';
+  const def = fieldDef(f.field);
+  const pop = document.createElement('div');
+  pop.className = 'cf-pop open'; pop.id = 'cfPop';
+  pop.innerHTML = cfOpsFor(def.type).map(op =>
+    `<label class="cf-op"><input type="radio" name="cfop" value="${op}" ${f.op === op ? 'checked' : ''}> ${CF_OP_LABELS[op]}</label>`).join('') +
+    `<div class="cf-val" id="cfValWrap"></div>` +
+    `<div class="cf-pop-foot"><button type="button" id="cfDone">Terminé</button></div>`;
+  chip.appendChild(pop);
+  pop.addEventListener('click', e => e.stopPropagation());
+  renderCfValue(f, def);
+  pop.querySelectorAll('input[name="cfop"]').forEach(radio => radio.addEventListener('change', () => {
+    f.op = radio.value; f.values = []; renderCfValue(f, def); refresh();
+  }));
+  pop.querySelector('#cfDone').addEventListener('click', () => { closeCfPop(); renderCustomFilters(); refresh(); });
+}
+function renderCfFieldMenu(q) {
+  const list = document.getElementById('cfFieldList'); if (!list) return;
+  const term = (q || '').trim().toLowerCase();
+  const groups = {};
+  FILTER_FIELDS.filter(f => !term || f.label.toLowerCase().includes(term)).forEach(f => { (groups[f.group] = groups[f.group] || []).push(f); });
+  list.innerHTML = Object.keys(groups).map(g =>
+    `<div class="cf-group">${escapeHTML(g)}</div>` +
+    groups[g].map(f => `<div class="cf-field" data-field="${f.key}">${escapeHTML(f.label)}</div>`).join('')
+  ).join('') || '<div class="cf-group">Aucun champ</div>';
+}
+(function wireCustomFilters() {
+  const addBtn = document.getElementById('cfAddBtn');
+  const menu = document.getElementById('cfFieldMenu');
+  const search = document.getElementById('cfSearch');
+  const list = document.getElementById('cfFieldList');
+  const chips = document.getElementById('cfChips');
+  if (!addBtn || !menu) return;
+  addBtn.addEventListener('click', e => {
+    e.stopPropagation(); closeCfPop();
+    const open = menu.classList.toggle('open');
+    if (open) { renderCfFieldMenu(''); if (search) { search.value = ''; setTimeout(() => search.focus(), 0); } }
+  });
+  if (search) search.addEventListener('input', () => renderCfFieldMenu(search.value));
+  if (search) search.addEventListener('click', e => e.stopPropagation());
+  if (list) list.addEventListener('click', e => {
+    e.stopPropagation();
+    const fEl = e.target.closest('.cf-field'); if (!fEl) return;
+    const def = fieldDef(fEl.dataset.field); if (!def) return;
+    const id = 'cf' + Date.now() + Math.random().toString(36).slice(2, 6);
+    customFilters.push({ id, field: def.key, op: cfDefaultOp(def.type), values: [] });
+    closeCfMenu(); renderCustomFilters(); openCfEditor(id);
+  });
+  if (chips) chips.addEventListener('click', e => {
+    e.stopPropagation();
+    const x = e.target.closest('.cf-chip-x');
+    if (x) { customFilters = customFilters.filter(f => f.id !== x.dataset.x); closeCfPop(); renderCustomFilters(); refresh(); return; }
+    const main = e.target.closest('.cf-chip-main');
+    if (main) { const chip = e.target.closest('.cf-chip'); openCfEditor(chip.dataset.id); }
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.cf-add-wrap')) closeCfMenu();
+    if (!e.target.closest('.cf-chip') && !e.target.closest('.cf-pop')) closeCfPop();
+  });
+})();
 /* ======================== Wiring ======================== */
 function populateStatusFilter() {
   const known = new Set(rawRows.map(r => r.status).filter(Boolean));
@@ -2638,6 +2875,8 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   amountFilter = 'all';
   dateFrom = null; dateTo = null;
   todayOnly = false;
+  customFilters = [];
+  if (typeof renderCustomFilters === 'function') renderCustomFilters();
   if (typeof dpUpdateTrigger === 'function') dpUpdateTrigger();
   renderCommercials();
   updateSubtitle();
@@ -2659,7 +2898,8 @@ if (filterToggle) filterToggle.addEventListener('click', () => {
 const periodTags = document.getElementById('periodTags');
 if (periodTags) periodTags.addEventListener('click', e => {
   const t = e.target.closest('.ftag'); if (!t || t.dataset.p === undefined) return;  // ignore le calendrier
-  periodFilterValue = parseInt(t.dataset.p);
+  const v = parseInt(t.dataset.p);
+  periodFilterValue = (periodFilterValue === v) ? 0 : v;   // re-clic = désélection (retour « Tout »)
   dateFrom = dateTo = null;   // exclusif avec la plage de dates précises
   if (typeof dpUpdateTrigger === 'function') dpUpdateTrigger();
   if (typeof dpRender === 'function') dpRender();
@@ -2670,7 +2910,8 @@ if (periodTags) periodTags.addEventListener('click', e => {
 const amountTags = document.getElementById('amountTags');
 if (amountTags) amountTags.addEventListener('click', e => {
   const t = e.target.closest('.ftag'); if (!t) return;
-  amountFilter = t.dataset.a;
+  const v = t.dataset.a;
+  amountFilter = (amountFilter === v) ? 'all' : v;   // re-clic = désélection (retour « Tous »)
   syncFilterControls();
   refresh();
 });
