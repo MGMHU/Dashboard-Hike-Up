@@ -37,7 +37,7 @@
   button:disabled, .btn:disabled, input:disabled, .pane-locked .textarea, .pane-locked #adminFileLabel { cursor: not-allowed !important; }
   html, body { margin: 0; padding: 0; }
   html { overflow-y: scroll; scrollbar-gutter: stable; }   /* scrollbar verticale toujours réservée : aucun décalage quand elle apparaît */
-  body { overflow-x: hidden; }                             /* empêche une scrollbar horizontale surgissante (saut) */
+  body { overflow-x: clip; }                               /* masque le débordement horizontal SANS casser le position:sticky de la barre latérale */
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
@@ -217,7 +217,9 @@
     box-shadow: 0 1px 3px rgba(16,17,21,0.06), 0 1px 2px rgba(16,17,21,0.03);
   }
   /* Filter commercial */
-  .commercial-card { padding: 16px 20px; margin-bottom: 16px; }
+  .commercial-card { padding: 16px 20px; margin-bottom: 16px; cursor: pointer; transition: border-color .12s, background .12s; }
+  .commercial-card:hover { border-color: var(--border-strong); }
+  .commercial-card:hover .filter-toggle { background: #f1f2f5; color: var(--text); }
   .commercial-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 12px; }
   .commercial-title { font-weight: 600; font-size: 14px; }
   .commercial-sub { color: var(--text-muted); font-size: 12.5px; margin-top: 2px; }
@@ -271,6 +273,8 @@
   .cf-pop-foot { display: flex; justify-content: flex-end; margin-top: 6px; }
   .cf-pop-foot button { font: inherit; font-size: 12.5px; font-weight: 600; color: #fff; background: var(--accent, #5b6cff); border: none; border-radius: 8px; padding: 7px 16px; cursor: pointer; }
   .filter-bar { display: flex; flex-direction: column; gap: 11px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .radar-head { display: flex; align-items: center; gap: 6px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-faint); }
+  .radar-head svg { color: var(--accent, #5b6cff); }
   .today-recap { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 12px; margin: 2px 2px 14px; font-size: 11.5px; color: var(--text-faint); }
   .today-recap:empty { display: none; }
   .today-recap .tr-label { font: inherit; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; font-size: 10.5px; cursor: pointer; border: 1px solid transparent; background: transparent; padding: 2px 8px; border-radius: 999px; transition: background .15s, color .15s, border-color .15s; }
@@ -514,7 +518,9 @@
   .opp-search { font: inherit; font-size: 12.5px; color: var(--text); background: #fff; border: 1px solid var(--border-strong); border-radius: 999px; padding: 6px 12px 6px 30px; width: 210px; outline: none; transition: border-color .15s, box-shadow .15s; }
   .opp-search:focus { border-color: var(--accent, #5b6cff); box-shadow: 0 0 0 3px var(--accent-soft); }
   .opp-search::placeholder { color: var(--text-faint); }
-  .table-scroll { max-height: 600px; overflow-y: auto; }
+  .opp-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 22px; border-bottom: 1px solid var(--border); }
+  .opp-quick-label { font-size: 12px; color: var(--text-faint); margin-right: 2px; }
+  .table-scroll { height: 600px; overflow-y: auto; }   /* hauteur figée : la section ne bouge pas selon le filtre */
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   thead th {
     text-align: left; font-size: 11px; font-weight: 600;
@@ -526,16 +532,17 @@
   tbody td { padding: 14px 22px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   tbody tr.opp-row td { vertical-align: top; }
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr.opp-row { cursor: pointer; }
+  tbody tr.opp-row { cursor: pointer; scroll-margin-top: 46px; height: 60px; }   /* hauteur figée + ancrage sous l'en-tête au déploiement */
   tbody tr.opp-row:hover { background: #fafafb; }
-  tbody tr.opp-row.expanded { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent, #5b6cff); }
-  tbody tr.opp-row.expanded:hover { background: var(--accent-soft); }
+  tbody tr.opp-row.expanded { background: #f6f7fb; box-shadow: inset 3px 0 0 var(--accent, #5b6cff); }
+  tbody tr.opp-row.expanded:hover { background: #f6f7fb; }
+  tbody tr.opp-row.expanded .opp-name { color: var(--accent, #5b6cff); font-weight: 600; }
   .chev {
     display: inline-block; width: 14px; height: 14px;
     transition: transform 0.18s; color: var(--text-muted); margin-right: 4px;
   }
   tbody tr.opp-row.expanded .chev { transform: rotate(90deg); color: var(--text); }
-  tbody tr.detail-row td { padding: 0; background: var(--accent-soft); }
+  tbody tr.detail-row td { padding: 0; background: #f6f7fb; }
   tbody tr.detail-row.hidden { display: none; }
   .opp-name-cell { display: flex; align-items: flex-start; gap: 7px; }
   .opp-name-block { display: flex; flex-direction: column; min-width: 0; }
@@ -646,6 +653,8 @@
     display: inline-block; padding: 4px 10px;
     border-radius: 999px; font-size: 12px; font-weight: 500;
   }
+  /* Badge de statut dans la table : tronqué pour ne pas élargir la colonne */
+  tbody tr.opp-row .badge { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
   .b-nouveau   { background: var(--st-nouveau-bg); color: var(--st-nouveau-fg); }
   .b-devis     { background: var(--st-devis-bg);   color: var(--st-devis-fg); }
   .b-attente   { background: var(--st-attente-bg); color: var(--st-attente-fg); }
@@ -1136,8 +1145,12 @@
           </div>
         </div>
 
-        <!-- Alertes (tags) -->
-        <div class="alerts-row" id="alertsRow" style="margin-top:14px; margin-bottom:0;"></div>
+        <!-- Radar : filtres rapides (signaux d'attention) -->
+        <div class="radar-head">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 12 L19 7"/><path d="M12 3 a9 9 0 0 1 7 4"/></svg>
+          <span>Radar</span>
+        </div>
+        <div class="alerts-row" id="alertsRow" style="margin-top:8px; margin-bottom:0;"></div>
         </div><!-- /filterAdvanced -->
       </div>
       <!-- Récap activité du jour (discret) -->
@@ -1168,7 +1181,7 @@
           <div class="value" id="kpiNew">—</div>
         </div>
         <div class="card kpi">
-          <div class="label">Devis en cours <span class="help">?<span class="tip">Nombre d'opportunités actuellement au statut <em>Devis/Offre envoyé</em>. Sous le chiffre : montant total de ces devis.<br><code>count(Statut = Devis)</code></span></span></div>
+          <div class="label">Devis en cours <span class="help">?<span class="tip">Nombre d'opportunités au statut <em>Devis/Offre envoyé</em> ou <em>Relance devis</em>. Sous le chiffre : montant total de ces devis.<br><code>count(Devis/Offre envoyé + Relance devis)</code></span></span></div>
           <div class="value" id="kpiDevis">—</div>
         </div>
       </div>
@@ -1184,7 +1197,7 @@
           <div class="value" id="kpiWinDevis">—</div>
         </div>
         <div class="card kpi sm">
-          <div class="label">Panier moyen <span class="help">?<span class="tip">Montant moyen des opportunités au statut <em>Devis/Offre envoyé</em>. Sous le montant : panier moyen des opportunités <em>gagnées</em>.<br><code>Σ Montant (Devis) / count(Devis)</code></span></span></div>
+          <div class="label">Panier moyen <span class="help">?<span class="tip">Montant moyen des opportunités au statut <em>Devis/Offre envoyé</em> ou <em>Relance devis</em>. Sous le montant : panier moyen des opportunités <em>gagnées</em>.<br><code>Σ Montant (Devis) / count(Devis)</code></span></span></div>
           <div class="value" id="kpiAvg">—</div>
         </div>
         <div class="card kpi sm">
@@ -1243,6 +1256,12 @@
             <label class="opp-toggle"><span class="switch"><input type="checkbox" id="oppShowClosed"><span class="slider"></span></span> Inclure les fermées (gagné/perdu)</label>
             <div class="count"><span id="oppCount">0</span> affichée(s)</div>
           </div>
+        </div>
+        <div class="opp-quick" id="oppQuick">
+          <span class="opp-quick-label">Filtre rapide</span>
+          <button class="ftag" type="button" data-q="noAction">Pas de prochaine action</button>
+          <button class="ftag" type="button" data-q="overdue">Prochaine action en retard</button>
+          <button class="ftag" type="button" data-q="far">Prochaine action &gt; 2 mois</button>
         </div>
         <div class="table-scroll">
           <table>
@@ -1945,12 +1964,26 @@ function daysSince(s) {
   return Math.floor((Date.now() - d.getTime()) / 86400000);
 }
 const isActiveStatus = r => r.status !== 'Gagné' && r.status !== 'Perdu';
+// « Devis » au sens large : Devis/Offre envoyé + Relance devis
+const isDevisStatus = r => r.status === 'Devis/Offre envoyé' || r.status === 'Relance devis';
 const RELANCE_DAYS = 7;   // seuil « À relancer » : prochaine action dépassée depuis plus de N jours
+const DORMANT_DAYS = 21;  // seuil « Dormant » : aucune activité depuis plus de N jours
+// Nombre de jours depuis la DERNIÈRE activité (modif, mouvement d'historique ou commentaire)
+function lastActivityDays(r) {
+  let latest = null;
+  const consider = d => { if (d && !isNaN(d) && (!latest || d > latest)) latest = d; };
+  consider(parseDateFR(r.followUp));
+  (r.history || []).forEach(h => consider(h && h.created_at ? new Date(h.created_at) : null));
+  (r.comments || []).forEach(c => consider(c && c.date ? new Date(String(c.date).replace(' ', 'T')) : null));
+  if (!latest) return null;
+  return Math.floor((Date.now() - latest.getTime()) / 86400000);
+}
 const ALERT_PREDICATES = {
   noAmount:     r => isActiveStatus(r) && r.amount === 0,
   noDate:       r => isActiveStatus(r) && !r.followUp,
   overdue:      r => { if (!isActiveStatus(r)) return false; const n = daysFromToday(r.nextAction); return n != null && n > 0; },
   stale:        r => { if (!isActiveStatus(r)) return false; const n = daysFromToday(r.nextAction); return n != null && n > RELANCE_DAYS; },
+  dormant:      r => { if (!isActiveStatus(r)) return false; const d = lastActivityDays(r); return d != null && d > DORMANT_DAYS; },
   devisNoProba: r => isActiveStatus(r) && r.status === 'Devis/Offre envoyé' && r.percentage === 0,
   longWait:     r => { if (r.status !== 'En attente/à relancer') return false; const d = daysSince(r.followUp); return d != null && d > 14; },
   noActivity:   r => isActiveStatus(r) && (!r.comments || r.comments.length === 0),
@@ -1987,6 +2020,14 @@ function computeAlerts(rows) {
       key: 'stale',
       sev: stale.length >= 5 ? 'critical' : 'warn',
       icon: ICON_CLOCK_T, label: `À relancer (>${RELANCE_DAYS}j de retard)`, count: stale.length,
+    });
+  }
+  const dormant = rows.filter(ALERT_PREDICATES.dormant);
+  if (dormant.length > 0) {
+    alerts.push({
+      key: 'dormant',
+      sev: dormant.length >= 5 ? 'critical' : 'warn',
+      icon: ICON_CLOCK_T, label: `Dormant (>${DORMANT_DAYS}j sans activité)`, count: dormant.length,
     });
   }
   const devisNoProba = rows.filter(ALERT_PREDICATES.devisNoProba);
@@ -2083,7 +2124,7 @@ function renderKPIs(rows) {
   const convDenom = won.length + lost.length;
   const conv = convDenom > 0 ? (won.length / convDenom) * 100 : 0;
   // Panier moyen des devis envoyés / des gagnés
-  const devis = rows.filter(r => r.status === 'Devis/Offre envoyé' && r.amount > 0);
+  const devis = rows.filter(r => isDevisStatus(r) && r.amount > 0);
   const avgDevis = devis.length ? devis.reduce((s,r) => s + r.amount, 0) / devis.length : 0;
   const wonWithAmt = won.filter(r => r.amount > 0);
   const avgWon = wonWithAmt.length ? wonWithAmt.reduce((s,r) => s + r.amount, 0) / wonWithAmt.length : 0;
@@ -2097,8 +2138,8 @@ function renderKPIs(rows) {
   const _activeCnt = rs => rs.filter(isActive).length;
   const _convM = rs => { const w = rs.filter(isWon).length, l = rs.filter(isLost).length; return (w+l) ? w/(w+l)*100 : 0; };
   const _winDevisM = rs => { const w = rs.filter(isWon).length; const dr = rs.filter(r => r.status==='Devis/Offre envoyé' || r.status==='En attente/à relancer' || isWon(r) || isLost(r)).length; return dr ? w/dr*100 : 0; };
-  const _avgDevisM = rs => { const d = rs.filter(r => r.status==='Devis/Offre envoyé' && r.amount>0); return d.length ? d.reduce((s,r)=>s+r.amount,0)/d.length : 0; };
-  const _devisCnt = rs => rs.filter(r => r.status==='Devis/Offre envoyé').length;
+  const _avgDevisM = rs => { const d = rs.filter(r => isDevisStatus(r) && r.amount>0); return d.length ? d.reduce((s,r)=>s+r.amount,0)/d.length : 0; };
+  const _devisCnt = rs => rs.filter(isDevisStatus).length;
   const _cycleM = rs => { const v = rs.filter(isWon).map(r => { const a=parseDateFR(r.createdAt), b=parseDateFR(r.followUp); return (a&&b)?Math.round((b-a)/86400000):null; }).filter(x => x!=null && x>=0); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : 0; };
   const _ageM = rs => { const v = rs.filter(isActive).map(r => { const a=parseDateFR(r.createdAt); return a?Math.round((Date.now()-a.getTime())/86400000):null; }).filter(x => x!=null && x>=0); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : 0; };
   const T = {
@@ -2138,8 +2179,8 @@ function renderKPIs(rows) {
   // Nouvelles opportunités (30 j) + 30 j précédents
   const createdInRange = (lo, hi) => rows.filter(r => { const d = parseDateFR(r.createdAt); if (!d) return false; const days = (nowMs - d.getTime()) / 86400000; return days >= lo && days < hi; }).length;
   const new30 = createdInRange(0, 30), prev30 = createdInRange(30, 60);
-  // Devis en cours
-  const devisList = rows.filter(r => r.status === 'Devis/Offre envoyé');
+  // Devis en cours (Devis/Offre envoyé + Relance devis)
+  const devisList = rows.filter(isDevisStatus);
   const devisAmt = devisList.reduce((s,r) => s + r.amount, 0);
 
   document.getElementById('kpiWinDevis').innerHTML = `${winDevis.toFixed(1)} <small>%</small>${subKpi(`${won.length} / ${devisReached.length} devis · ${T.winDevis}`)}`;
@@ -2193,17 +2234,18 @@ function renderLeaderboard(rows) {
     const won = rs.filter(r => r.status === 'Gagné');
     const lost = rs.filter(r => r.status === 'Perdu');
     const active = rs.filter(r => r.status !== 'Gagné' && r.status !== 'Perdu');
-    const devis = rs.filter(r => r.status === 'Devis/Offre envoyé');
+    const devis = rs.filter(isDevisStatus);
     const caWon = won.reduce((s,r) => s + r.amount, 0);
     const winRate = (won.length + lost.length) ? (won.length / (won.length + lost.length)) * 100 : null;
-    return { u, active: active.length, devis: devis.length, caWon, winRate };
+    return { u, active: active.length, devis: devis.length, wonCount: won.length, caWon, winRate };
   }).sort((a, b) => b.caWon - a.caWon);
-  let html = `<table class="lb"><thead><tr><th>Commercial</th><th>Actives</th><th>Devis</th><th>CA gagné</th><th>Win&nbsp;% <span class="help">?<span class="tip">Taux de réussite : opportunités <strong>gagnées</strong> ÷ opportunités <strong>clôturées</strong> (Gagné + Perdu). Les opportunités encore ouvertes ne sont pas comptées. « — » signifie aucune opportunité clôturée.<br><code>Gagné / (Gagné + Perdu)</code></span></span></th></tr></thead><tbody>`;
+  let html = `<table class="lb"><thead><tr><th>Commercial</th><th>Actives</th><th>Devis</th><th>Gagnées</th><th>CA gagné</th><th>Win&nbsp;% <span class="help">?<span class="tip">Taux de réussite : opportunités <strong>gagnées</strong> ÷ opportunités <strong>clôturées</strong> (Gagné + Perdu). Les opportunités encore ouvertes ne sont pas comptées. « — » signifie aucune opportunité clôturée.<br><code>Gagné / (Gagné + Perdu)</code></span></span></th></tr></thead><tbody>`;
   data.forEach(d => {
     html += `<tr>
       <td><div class="lb-name"><span class="avatar" style="background:${avatarColor(d.u.id)}; width:24px; height:24px; font-size:10px;">${initials(d.u.first, d.u.last)}</span>${escapeHTML(d.u.name)}</div></td>
       <td>${d.active}</td>
       <td>${d.devis}</td>
+      <td>${d.wonCount}</td>
       <td>${fmtEUR(d.caWon)}</td>
       <td>${d.winRate != null ? d.winRate.toFixed(0) + '%' : '—'}</td>
     </tr>`;
@@ -2450,6 +2492,7 @@ function renderActivity(r) {
 let lastTableRows = [];      // dernières lignes passées à la table (pour le toggle)
 let showClosedOpps = false;  // inclure les opportunités fermées (Gagné/Perdu)
 let oppSearchTerm = '';      // recherche live par nom d'opportunité
+let oppQuick = null;         // filtre rapide : null | 'noAction' | 'overdue' | 'far'
 function renderTable(rows) {
   lastTableRows = rows || [];
   const body = document.getElementById('oppBody');
@@ -2461,6 +2504,16 @@ function renderTable(rows) {
     (r.company || '').toLowerCase().includes(q) ||
     (r.name || '').toLowerCase().includes(q) ||
     (r.contact || '').toLowerCase().includes(q));
+  // Filtres rapides sur la prochaine action
+  if (oppQuick === 'noAction') {
+    rows = rows.filter(r => !parseAnyDate(r.nextAction));
+  } else if (oppQuick === 'overdue') {
+    rows = rows.filter(r => { const n = daysFromToday(r.nextAction); return n != null && n > 0; });
+  } else if (oppQuick === 'far') {
+    const t = new Date(); const lim = new Date(t.getFullYear(), t.getMonth() + 2, t.getDate());
+    rows = rows.filter(r => { const d = parseAnyDate(r.nextAction); return d && d > lim; });
+  }
+  document.querySelectorAll('#oppQuick .ftag').forEach(b => b.classList.toggle('active', b.dataset.q === oppQuick));
   document.getElementById('oppCount').textContent = rows.length;
   // Priorité aux leads à traiter : ceux sans prochaine action planifiée en haut,
   // puis de l'échéance la plus proche/dépassée à la plus lointaine.
@@ -2497,7 +2550,7 @@ function renderTable(rows) {
       <td><div class="admin-cell">${initialsHtml}<span>${escapeHTML(r.userName)}</span></div></td>
       <td class="num">${r.amount > 0 ? fmtEUR(r.amount) : '<span class="muted">—</span>'}</td>
       <td class="num">${r.percentage}%</td>
-      <td><span class="badge" style="background:${sbc.bg}; color:${sbc.fg};">${escapeHTML(r.status)}</span></td>
+      <td><span class="badge" title="${escapeHTML(r.status)}" style="background:${sbc.bg}; color:${sbc.fg};">${escapeHTML(r.status)}</span></td>
       <td class="muted">${escapeHTML(fmtDateShort(r.followUp) || '—')}</td>
       <td>${naCell}</td>
     `;
@@ -2511,6 +2564,8 @@ function renderTable(rows) {
       if (open) {
         detail.querySelector('td').innerHTML = renderActivity(r);
         detail.classList.remove('hidden');
+        // Amène la ligne dépliée en haut de la zone visible (lecture face à nous, sans trop scroller)
+        setTimeout(() => tr.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
       } else {
         detail.classList.add('hidden');
       }
@@ -2525,6 +2580,12 @@ function renderTable(rows) {
     oppSearchTerm = search.value;
     renderTable(lastTableRows);
     const el = document.getElementById('oppSearch'); if (el) { el.focus(); }   // garde le focus après re-render
+  });
+  const quick = document.getElementById('oppQuick');
+  if (quick) quick.addEventListener('click', e => {
+    const b = e.target.closest('.ftag'); if (!b) return;
+    oppQuick = (oppQuick === b.dataset.q) ? null : b.dataset.q;   // re-clic = désélection
+    renderTable(lastTableRows);
   });
 })();
 /* ===== Filtres personnalisés (constructeur) ===== */
@@ -2686,7 +2747,10 @@ function toggleStatus(st) {
 function syncFilterControls() {
   document.querySelectorAll('#periodTags .ftag').forEach(b => {
     if (b.dataset.p === undefined) return;   // le bouton calendrier garde son propre état
-    b.classList.toggle('active', parseInt(b.dataset.p) === periodFilterValue && !(dateFrom || dateTo));
+    const p = parseInt(b.dataset.p);
+    // Preset actif si périodeFilterValue correspond ; « Tout » jamais actif si une plage est posée
+    const on = (p === periodFilterValue) && !(p === 0 && (dateFrom || dateTo));
+    b.classList.toggle('active', on);
   });
   document.querySelectorAll('#amountTags .ftag').forEach(b => b.classList.toggle('active', b.dataset.a === amountFilter));
   document.querySelectorAll('#statusTags .ftag').forEach(b => b.classList.toggle('active', statusFilterSet.includes(b.dataset.st)));
@@ -2884,14 +2948,22 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   refresh();
 });
 
-// Flèche : déplie / replie les filtres avancés
-const filterToggle = document.getElementById('filterToggle');
-if (filterToggle) filterToggle.addEventListener('click', () => {
+// Déplie / replie les filtres avancés
+function toggleFilters(force) {
   const adv = document.getElementById('filterAdvanced');
   if (!adv) return;
-  const open = adv.style.display === 'none';
+  const open = force != null ? force : (adv.style.display === 'none');
   adv.style.display = open ? '' : 'none';
-  filterToggle.classList.toggle('open', open);
+  const ft = document.getElementById('filterToggle');
+  if (ft) ft.classList.toggle('open', open);
+}
+const filterToggle = document.getElementById('filterToggle');
+if (filterToggle) filterToggle.addEventListener('click', e => { e.stopPropagation(); toggleFilters(); });
+// Toute la carte Filtres est cliquable pour déplier/replier — sauf sur les filtres eux-mêmes
+const filterCard = document.querySelector('.commercial-card');
+if (filterCard) filterCard.addEventListener('click', e => {
+  if (e.target.closest('.chip, .ftag, .dp, .dp-pop, .pill, .alerts-row, button, a, input, select, label, .help')) return;
+  toggleFilters();
 });
 
 // Filtre Période (tag — sélection unique)
@@ -2899,8 +2971,18 @@ const periodTags = document.getElementById('periodTags');
 if (periodTags) periodTags.addEventListener('click', e => {
   const t = e.target.closest('.ftag'); if (!t || t.dataset.p === undefined) return;  // ignore le calendrier
   const v = parseInt(t.dataset.p);
-  periodFilterValue = (periodFilterValue === v) ? 0 : v;   // re-clic = désélection (retour « Tout »)
-  dateFrom = dateTo = null;   // exclusif avec la plage de dates précises
+  const deselect = (periodFilterValue === v && v !== 0);   // re-clic = désélection
+  if (deselect || v === 0) {
+    periodFilterValue = 0;
+    dateFrom = dateTo = null;
+  } else {
+    periodFilterValue = v;
+    // Reflète le preset dans le calendrier : du 1er du mois (N mois en arrière) à aujourd'hui
+    const now = new Date();
+    dateFrom = new Date(now.getFullYear(), now.getMonth() - v + 1, 1, 0, 0, 0);
+    dateTo   = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    dpViewYear = dateTo.getFullYear(); dpViewMonth = dateTo.getMonth();   // calendrier sur le mois courant
+  }
   if (typeof dpUpdateTrigger === 'function') dpUpdateTrigger();
   if (typeof dpRender === 'function') dpRender();
   syncFilterControls();
@@ -4024,10 +4106,19 @@ function applyViewBranding() {
     const c = adminClients.find(x => x.id === adminViewClientIds[0]);
     if (c) { applyClientName(c.name); applyClientLogo(c.logo_url || null); setReportTitle(c.name); return; }
   }
-  // Vue d'ensemble / plusieurs clients → marque de l'agence, sans logo, titre = "Vue d'ensemble"
+  // Vue d'ensemble / plusieurs clients → marque de l'agence (admin = nous = client « Hike Up »)
   applyClientName(null);                       // → "Hike UP" (valeur par défaut)
-  const main = document.getElementById('clientLogo');
-  if (main) main.innerHTML = '';               // aucun logo affiché
+  // Reprend la photo de profil du client « Hike Up » s'il existe en base
+  const hikeUp = (adminClients || []).find(c => {
+    const n = (c.name || '').trim().toLowerCase().replace(/[\s-]/g, '');
+    return n === 'hikeup';
+  });
+  if (hikeUp && hikeUp.logo_url) {
+    applyClientLogo(hikeUp.logo_url);
+  } else {
+    const main = document.getElementById('clientLogo');
+    if (main) main.innerHTML = '';             // aucun logo si pas de client Hike Up
+  }
   setReportTitle("Vue d'ensemble");
 }
 
