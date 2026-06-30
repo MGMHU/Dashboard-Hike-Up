@@ -1703,6 +1703,13 @@ function relativeDays(s) {
   if (n <= 0) return "aujourd'hui";
   return n === 1 ? 'il y a 1 jour' : `il y a ${n} jours`;
 }
+// Libellé court relatif : « Aujourd'hui » / « Hier » / « il y a X jours »
+function relativeDayLabel(s) {
+  const n = daysFromToday(s); if (n == null) return '';
+  if (n <= 0) return "Aujourd'hui";
+  if (n === 1) return 'Hier';
+  return `il y a ${n} jours`;
+}
 // Date à laquelle l'opportunité a été gagnée (clôture) : won_at/closing_date,
 // sinon dernier passage du statut en « Gagné » dans l'historique, sinon date de suivi.
 function rowWonDate(r) {
@@ -2551,7 +2558,7 @@ function renderTable(rows) {
       <td class="num">${r.amount > 0 ? fmtEUR(r.amount) : '<span class="muted">—</span>'}</td>
       <td class="num">${r.percentage}%</td>
       <td><span class="badge" title="${escapeHTML(r.status)}" style="background:${sbc.bg}; color:${sbc.fg};">${escapeHTML(r.status)}</span></td>
-      <td class="muted">${escapeHTML(fmtDateShort(r.followUp) || '—')}</td>
+      <td class="muted"><div class="na-block"><span>${escapeHTML(fmtDateShort(r.followUp) || '—')}</span>${r.followUp ? `<span class="opp-created">${escapeHTML(relativeDayLabel(r.followUp))}</span>` : ''}</div></td>
       <td>${naCell}</td>
     `;
     body.appendChild(tr);
