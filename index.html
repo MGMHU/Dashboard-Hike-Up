@@ -1202,7 +1202,7 @@
           <div class="value" id="kpiAvg">—</div>
         </div>
         <div class="card kpi sm">
-          <div class="label">Cycle de vente moyen <span class="help">?<span class="tip">Durée moyenne entre la création et le gain d'une opportunité (approximée via la date de suivi des gagnées).<br><code>moy(date suivi − date création) sur Gagné</code></span></span></div>
+          <div class="label">Cycle de vente moyen <span class="help">?<span class="tip">Durée moyenne entre la création et la clôture gagnée d'une opportunité (date de gain / won_at).<br><code>moy(won_at − date création) sur Gagné</code></span></span></div>
           <div class="value" id="kpiCycle">—</div>
         </div>
         <div class="card kpi sm">
@@ -2148,7 +2148,7 @@ function renderKPIs(rows) {
   const _winDevisM = rs => { const w = rs.filter(isWon).length; const dr = rs.filter(r => r.status==='Devis/Offre envoyé' || r.status==='En attente/à relancer' || isWon(r) || isLost(r)).length; return dr ? w/dr*100 : 0; };
   const _avgDevisM = rs => { const d = rs.filter(r => isDevisStatus(r) && r.amount>0); return d.length ? d.reduce((s,r)=>s+r.amount,0)/d.length : 0; };
   const _devisCnt = rs => rs.filter(isDevisStatus).length;
-  const _cycleM = rs => { const v = rs.filter(isWon).map(r => { const a=parseDateFR(r.createdAt), b=parseDateFR(r.followUp); return (a&&b)?Math.round((b-a)/86400000):null; }).filter(x => x!=null && x>=0); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : 0; };
+  const _cycleM = rs => { const v = rs.filter(isWon).map(r => { const a=parseDateFR(r.createdAt), b=rowWonDate(r); return (a&&b)?Math.round((b-a)/86400000):null; }).filter(x => x!=null && x>=0); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : 0; };
   const _ageM = rs => { const v = rs.filter(isActive).map(r => { const a=parseDateFR(r.createdAt); return a?Math.round((Date.now()-a.getTime())/86400000):null; }).filter(x => x!=null && x>=0); return v.length ? v.reduce((s,x)=>s+x,0)/v.length : 0; };
   const T = {
     pipeline: trendArrow(_activeAmt(_c), _activeAmt(_p)),
@@ -2167,16 +2167,17 @@ function renderKPIs(rows) {
   document.getElementById('kpiWon').innerHTML      = `${fmtEUR(wonTotal)}${subKpi(`${wonKpi.length} gagnée${wonKpi.length > 1 ? 's' : ''} · ${T.won}`)}`;
   document.getElementById('kpiWeighted').innerHTML = `${fmtEUR(weighted)}${subKpi(T.weighted)}`;
   document.getElementById('kpiActive').innerHTML   = `${activeCount}${subKpi(`${rows.length} au total · ${T.active}`)}`;
-  document.getElementById('kpiConv').innerHTML     = `${conv.toFixed(1)} <small>%</small>${subKpi(T.conv)}`;
+  document.getElementById('kpiConv').innerHTML     = `${conv.toFixed(1)} <small>%</small>${subKpi(`${won.length} / ${won.length + lost.length} clôturés · ${T.conv}`)}`;
   document.getElementById('kpiAvg').innerHTML      = `${fmtEUR(avgDevis)}${subKpi(`Gagnés : ${fmtEUR(avgWon)} · ${T.avg}`)}`;
 
   // --- KPI additionnels ---
   // Transformation des devis
   const devisReached = rows.filter(r => r.status === 'Devis/Offre envoyé' || r.status === 'En attente/à relancer' || isWon(r) || isLost(r));
   const winDevis = devisReached.length ? (won.length / devisReached.length) * 100 : 0;
-  // Cycle de vente moyen (création → date de suivi des gagnées)
+  // Cycle de vente moyen (création → date de gain / won_at des gagnées)
   const daysBetween = (a, b) => { const d1 = parseDateFR(a), d2 = parseDateFR(b); if (!d1 || !d2) return null; return Math.round((d2 - d1) / 86400000); };
-  const cycleVals = won.map(r => daysBetween(r.createdAt, r.followUp)).filter(v => v != null && v >= 0);
+  const cycleDaysOf = r => { const a = parseDateFR(r.createdAt), b = rowWonDate(r); return (a && b) ? Math.round((b - a) / 86400000) : null; };
+  const cycleVals = won.map(cycleDaysOf).filter(v => v != null && v >= 0);
   const avgCycle = cycleVals.length ? Math.round(cycleVals.reduce((s,v) => s + v, 0) / cycleVals.length) : null;
   // Âge moyen des opps ouvertes + % dormantes
   const nowMs = Date.now();
