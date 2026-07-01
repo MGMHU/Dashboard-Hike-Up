@@ -1067,6 +1067,43 @@
   /* Période relogée dans le sheet : alignée à gauche, séparée de la suite */
   .pilot-body .period-top { justify-content: flex-start; margin: 0 0 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
   body.pilot-open { overflow: hidden; }
+
+  /* ===================== MOBILE (n'affecte que ≤ 640px) ===================== */
+  @media (max-width: 640px) {
+    /* Barre flottante : on ne garde que le bouton centré (KPI/tags masqués faute de place) */
+    .pilot-bar { width: auto; grid-template-columns: none; display: flex; justify-content: center; }
+    .pilot-kpis, .pilot-tags { display: none; }
+    /* Bottom sheet plein écran en bas */
+    .pilot-drawer { width: 100vw; max-width: 100vw; border-radius: 16px 16px 0 0; }
+    .pilot-body { padding: 14px 14px 80px; }
+
+    /* En-tête du tableau : on autorise le retour à la ligne, contrôles empilés */
+    .table-header { flex-wrap: wrap; align-items: flex-start; gap: 10px; padding: 14px 16px; }
+    #oppControls { flex-wrap: wrap !important; width: 100%; gap: 10px; }
+    .opp-search-wrap { flex: 1 1 160px; }
+    .opp-search { width: 100%; box-sizing: border-box; }
+    .opp-toggle { font-size: 11.5px; }
+    .table-header .title { font-size: 16px; }
+
+    /* Filtres : période et tags en pleine largeur, alignés à gauche */
+    .period-top { justify-content: flex-start; }
+    .commercial-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .commercial-row::-webkit-scrollbar { display: none; }
+
+    /* Onglets du module : compacts */
+    #oppTabs { gap: 14px; font-size: 12.5px; }
+
+    /* Deux colonnes déjà empilées ; on resserre l'analyse express */
+    #insightsPane { padding: 12px 14px 20px; }
+    .ins-line { font-size: 13px; }
+
+    /* Graphique : un peu plus bas pour la lisibilité tactile */
+    .chart-header { flex-wrap: wrap; gap: 8px; }
+  }
+  @media (max-width: 400px) {
+    .table-header .title { font-size: 15px; }
+    .opp-toggle { font-size: 11px; }
+  }
 </style>
 </head>
 <body>
