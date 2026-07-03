@@ -1119,15 +1119,57 @@
   .add-user-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--accent, #5b6cff); background: none; border: 1px dashed var(--border-strong); border-radius: 9px; padding: 9px 13px; cursor: pointer; width: 100%; justify-content: center; transition: background .15s, border-color .15s; }
   .add-user-btn:hover { background: var(--accent-soft); border-color: var(--accent, #5b6cff); }
 
+  /* Pager mobile : totalement transparent sur desktop (aucun impact) */
+  #mPageNav { display: none; }
+  .m-page { display: contents; }
+  .table-slide-hint { display: none; }
+
   /* ===================== MOBILE (n'affecte que ≤ 640px) ===================== */
   @media (max-width: 640px) {
-    /* Rien ne passe sous la barre flottante ni sous la topbar */
-    .page { padding: 60px 12px 92px; }
+    /* ===== Pager horizontal : on glisse entre Vue d'ensemble et Opportunités ===== */
+    #mPageNav {
+      position: fixed; top: 9px; left: 50%; transform: translateX(-50%); z-index: 210;
+      display: flex; gap: 2px; background: #fff; border: 1px solid var(--border);
+      border-radius: 20px; padding: 3px; box-shadow: var(--shadow); max-width: calc(100vw - 108px);
+    }
+    .mpn-btn {
+      border: none; background: none; font-size: 12px; font-weight: 600; color: var(--text-muted);
+      padding: 6px 14px; border-radius: 16px; cursor: pointer; white-space: nowrap;
+    }
+    .mpn-btn.active { background: var(--accent, #5b6cff); color: #fff; }
+    .page {
+      display: flex; flex-direction: row; flex-wrap: nowrap;
+      overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory;
+      height: 100vh; padding: 0; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+    }
+    .page::-webkit-scrollbar { display: none; }
+    .m-page {
+      display: block; flex: 0 0 100%; width: 100%; scroll-snap-align: start;
+      overflow-y: auto; height: 100vh; padding: 60px 12px 96px; -webkit-overflow-scrolling: touch;
+    }
+    .m-page::-webkit-scrollbar { display: none; }
 
-    /* KPI : grille complète — tout est visible (fini le carrousel tronqué) */
-    .kpi-grid, .kpi-grid-sm { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow: visible; scroll-snap-type: none; margin: 0 0 4px; padding: 0; }
-    .kpi-grid > .card.kpi, .kpi-grid-sm > .card.kpi { flex: none; width: auto; scroll-snap-align: none; }
-    .kpi-dots { display: none !important; }
+    /* Tableau : société figée à gauche + indicateur de glissement visible */
+    .table-slide-hint {
+      display: flex; align-items: center; gap: 6px; justify-content: flex-end;
+      font-size: 11px; color: var(--text-faint); padding: 6px 16px 0;
+    }
+    .table-scroll { overflow-x: auto; scrollbar-width: thin; }
+    .table-scroll::-webkit-scrollbar { height: 6px; }
+    .table-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+    thead th:first-child, tbody td:first-child {
+      position: sticky; left: 0; z-index: 2; background: var(--panel, #fff);
+      box-shadow: 6px 0 8px -6px rgba(0,0,0,.18);
+    }
+    thead th:first-child { z-index: 3; }
+    /* Carrousel des colonnes : chaque colonne s'aligne au glissement (société figée exclue) */
+    .table-scroll { scroll-snap-type: x proximity; }
+    thead th { scroll-snap-align: start; }
+    thead th:first-child { scroll-snap-align: none; }
+
+    /* Rien ne passe sous la barre flottante ni sous la topbar */
+
+    /* KPI : carrousel horizontal (glissement) — le carrousel de base (≤700) s'applique */
     .card.kpi { padding: 13px 14px; }
     .kpi .value { font-size: 20px; }
     .kpi.sm .value { font-size: 17px; }
@@ -1188,7 +1230,6 @@
     .assign-select { width: 100%; max-width: none; }
   }
   @media (max-width: 400px) {
-    .kpi-grid, .kpi-grid-sm { grid-template-columns: 1fr; }
     .table-header .title { font-size: 15px; }
     .opp-toggle { font-size: 11px; }
   }
@@ -1324,7 +1365,14 @@
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </button>
     </div>
+    <!-- Navigation par pages (mobile uniquement) -->
+    <div id="mPageNav">
+      <button type="button" class="mpn-btn active" data-mgo="overview">Vue d'ensemble</button>
+      <button type="button" class="mpn-btn" data-mgo="opps">Opportunités</button>
+    </div>
     <div class="page">
+      <!-- Page mobile 1 : Vue d'ensemble -->
+      <div class="m-page" data-mpage="overview">
       <!-- Header -->
       <div class="header">
         <div>
@@ -1500,6 +1548,9 @@
         <div class="status-title">Performance par commercial</div>
         <div id="leaderboard"></div>
       </div>
+      </div><!-- /m-page overview -->
+      <!-- Page mobile 2 : Pilotez vos opportunités -->
+      <div class="m-page" data-mpage="opps">
       <!-- Module Pilotez vos opportunités : onglets Tableau / Analyse express -->
       <div class="card table-card">
         <div class="table-header">
@@ -1527,6 +1578,9 @@
             <button class="ftag" type="button" data-q="overdue">Prochaine action en retard</button>
             <button class="ftag" type="button" data-q="far">Prochaine action &gt; 2 mois</button>
           </div>
+          <div class="table-slide-hint">Société figée · glissez pour voir les colonnes
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
           <div class="table-scroll">
             <table>
               <thead>
@@ -1551,6 +1605,7 @@
           <div id="insightsWrap"></div>
         </div>
       </div>
+      </div><!-- /m-page opps -->
     </div>
   </main>
 </div>
@@ -3634,6 +3689,8 @@ if (filterCard) filterCard.addEventListener('click', e => {
   }
   function updateVisibility() {
     if (open || !bar) return;
+    // Sur mobile (pager), le bouton Filtres est toujours accessible
+    if (window.matchMedia('(max-width: 640px)').matches) { bar.classList.add('show'); updateBadge(); return; }
     const r = home.getBoundingClientRect();
     const scrolledPast = r.top < 0;                 // les filtres sont passés au-dessus de l'écran
     const visibleView = card.offsetParent !== null; // masqué sur les autres vues → pas de barre
@@ -3659,6 +3716,27 @@ if (filterCard) filterCard.addEventListener('click', e => {
     refresh = function () { _origRefresh.apply(this, arguments); updateBadge(); };
   }
   updateVisibility();
+})();
+
+/* ===== Pager mobile : navigation par glissement entre Vue d'ensemble / Opportunités ===== */
+(function initMobilePager() {
+  const pager = document.querySelector('.page');
+  const nav = document.getElementById('mPageNav');
+  if (!pager || !nav) return;
+  const pages = [...pager.querySelectorAll('.m-page')];
+  const btns = [...nav.querySelectorAll('.mpn-btn')];
+  const idxOf = key => Math.max(0, pages.findIndex(p => p.dataset.mpage === key));
+  function goTo(key) {
+    const i = idxOf(key);
+    pager.scrollTo({ left: i * pager.clientWidth, behavior: 'smooth' });
+  }
+  function syncActive() {
+    const i = Math.round(pager.scrollLeft / Math.max(1, pager.clientWidth));
+    btns.forEach((b, k) => b.classList.toggle('active', k === i));
+  }
+  btns.forEach(b => b.addEventListener('click', () => goTo(b.dataset.mgo)));
+  pager.addEventListener('scroll', () => { window.requestAnimationFrame(syncActive); }, { passive: true });
+  window.addEventListener('resize', syncActive);
 })();
 
 // Filtre Période (tag — sélection unique)
