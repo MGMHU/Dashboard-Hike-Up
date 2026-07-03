@@ -1068,6 +1068,57 @@
   .pilot-body .period-top { justify-content: flex-start; margin: 0 0 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
   body.pilot-open { overflow: hidden; }
 
+  /* Onglets de navigation du contexte client (style graphique) */
+  .cap-tabs { gap: 20px; margin: 14px 0 18px; border-bottom: 1px solid var(--border); }
+  .cap-tabs .tab { padding-bottom: 9px; margin-bottom: -1px; font-size: 13.5px; }
+  .cap-pane { padding-top: 2px; }
+  /* ===== Comptes & clients : structure claire de création d'accès ===== */
+  .acc-section { margin-bottom: 20px; }
+  .acc-section:last-child { margin-bottom: 0; }
+  .acc-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .acc-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); }
+  .users-list { display: flex; flex-direction: column; gap: 8px; }
+  .create-user { background: var(--panel, #fff); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+  .cu-head { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+  .cu-icon { width: 30px; height: 30px; flex: 0 0 auto; border-radius: 8px; background: var(--accent-soft); color: var(--accent, #5b6cff); display: flex; align-items: center; justify-content: center; }
+  .cu-title { font-size: 13.5px; font-weight: 600; color: var(--text); }
+  .cu-sub { font-size: 11.5px; color: var(--text-faint); margin-top: 1px; }
+  .cu-group { margin-bottom: 16px; }
+  .cu-group-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-faint); margin-bottom: 9px; }
+  .cu-step { display: none; }
+  .cu-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .req-note { font-weight: 500; color: var(--text-faint); font-size: 10.5px; }
+  /* Bouton de confirmation épuré */
+  .create-user .btn { border-radius: 9px; font-weight: 600; }
+  /* Invite « aucun client sélectionné » */
+  .admin-no-client { display: flex; align-items: center; gap: 10px; color: var(--text-faint); font-size: 13px; padding: 26px 8px; }
+  .admin-no-client svg { flex: 0 0 auto; opacity: .7; }
+  /* Vue lecture seule des infos client */
+  .info-view { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--bg, #f6f7fb); border: 1px solid var(--border); border-radius: 12px; }
+  .info-view-logo { width: 48px; height: 48px; flex: 0 0 auto; border: 1px solid var(--border-strong); }
+  .info-view-meta { flex: 1 1 auto; min-width: 0; }
+  .info-view-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .info-view-cons { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+  .info-edit-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); background: var(--panel, #fff); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; cursor: pointer; transition: border-color .15s, color .15s; }
+  .info-edit-btn:hover { border-color: var(--accent, #5b6cff); color: var(--text); }
+  /* Lignes de consultants du panneau admin (classes dédiées, sans collision avec la sidebar) */
+  .cadm-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; }
+  .cadm-avatar { width: 40px; height: 40px; flex: 0 0 auto; border-radius: 50%; overflow: hidden; background: var(--accent-soft); color: var(--accent, #5b6cff); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 1px solid var(--border); }
+  .cadm-meta { flex: 1 1 auto; min-width: 0; }
+  .cadm-name { font-size: 13.5px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .cadm-count { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-faint); background: var(--bg, #f6f7fb); border: 1px solid var(--border); border-radius: 10px; padding: 1px 7px; }
+  .cadm-clients { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+  .cons-client-chip { font-size: 11px; font-weight: 600; color: var(--text-muted); background: var(--bg, #f6f7fb); border: 1px solid var(--border); border-radius: 8px; padding: 2px 8px; }
+  .cons-none { font-size: 11.5px; color: var(--text-faint); font-style: italic; }
+  /* Attribution des sociétés */
+  .assign-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .assign-row:last-child { border-bottom: none; }
+  .assign-name { flex: 1 1 auto; min-width: 0; font-size: 13px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .assign-select { flex: 0 0 auto; width: 190px; max-width: 50%; }
+  /* Bouton « Ajouter un utilisateur » */
+  .add-user-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--accent, #5b6cff); background: none; border: 1px dashed var(--border-strong); border-radius: 9px; padding: 9px 13px; cursor: pointer; width: 100%; justify-content: center; transition: background .15s, border-color .15s; }
+  .add-user-btn:hover { background: var(--accent-soft); border-color: var(--accent, #5b6cff); }
+
   /* ===================== MOBILE (n'affecte que ≤ 640px) ===================== */
   @media (max-width: 640px) {
     /* Barre flottante : on ne garde que le bouton centré (KPI/tags masqués faute de place) */
@@ -1099,6 +1150,9 @@
 
     /* Graphique : un peu plus bas pour la lisibilité tactile */
     .chart-header { flex-wrap: wrap; gap: 8px; }
+
+    /* Création d'accès : champs empilés */
+    .cu-field-grid { grid-template-columns: 1fr; }
   }
   @media (max-width: 400px) {
     .table-header .title { font-size: 15px; }
@@ -1531,17 +1585,67 @@
       <div id="adminClientBar" style="display:none; margin-bottom:14px; padding:12px;
            background:var(--accent-soft); border-radius:10px;">
         <label style="display:block; font-size:12.5px; font-weight:600; margin-bottom:8px;">Client sélectionné <span class="muted" style="font-weight:400;">— pilote tout le panneau (clic pour choisir, reclic pour annuler)</span></label>
-        <div id="adminImportClients" class="cap-chips cap-chips-sm" style="margin-bottom:10px;"></div>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+          <div id="adminImportClients" class="cap-chips cap-chips-sm" style="margin:0;"></div>
+          <button class="btn secondary" id="panelNewClientBtn" type="button" style="font-size:12px; padding:5px 11px; white-space:nowrap;">+ Nouveau client</button>
+        </div>
         <label style="font-size:12.5px; display:inline-flex; align-items:center; gap:6px;">
           <input type="checkbox" id="adminReplace" checked> Remplacer les données existantes lors d'un import
         </label>
       </div>
-      <div class="tab-bar">
-        <div class="t active" data-atab="json">JSON brut</div>
-        <div class="t" data-atab="file">Importer un fichier</div>
+      <div class="tab-bar" id="adminTabBar">
+        <div class="t" data-atab="json" style="display:none;">JSON brut</div>
+        <div class="t" data-atab="accounts" style="display:none;">Accès</div>
+        <div class="t" data-atab="consultants">Consultants</div>
         <div class="t" data-atab="user">Profil</div>
-        <div class="t" data-atab="accounts">Comptes &amp; clients</div>
-        <div class="t" data-atab="logs">Logs</div>
+        <div class="t active" data-atab="logs">Logs</div>
+        <div class="t" data-atab="file" style="display:none;">Importer un fichier</div>
+      </div>
+      <div id="adminNoClientHint" class="admin-no-client">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Sélectionnez un client ci-dessus pour importer ses données et gérer ses accès.</span>
+      </div>
+      <!-- Label du client sélectionné (en haut du module, sur tous les onglets) + édition des infos -->
+      <div id="clientLabelBar" style="display:none; margin-bottom:14px;">
+        <div class="info-view" id="clientInfoView">
+          <div class="client-logo info-view-logo" id="viewClientLogo"></div>
+          <div class="info-view-meta">
+            <div class="info-view-name" id="viewClientName">—</div>
+            <div class="info-view-cons" id="viewClientConsultant">—</div>
+          </div>
+          <button class="info-edit-btn" id="editClientToggle" type="button" title="Modifier les infos">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            Modifier
+          </button>
+        </div>
+        <div id="clientInfoEdit" style="display:none; margin-top:12px; padding:16px; background:var(--bg,#f6f7fb); border:1px solid var(--border); border-radius:12px;">
+          <div class="field">
+            <label>Nom du client</label>
+            <input type="text" class="input" id="editClientName" maxlength="60">
+          </div>
+          <div class="field">
+            <label>Consultant responsable</label>
+            <select id="editClientConsultant" class="input"><option value="">— Aucun —</option></select>
+          </div>
+          <div class="field">
+            <label>Photo / logo</label>
+            <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
+              <div class="client-logo" id="editClientLogoPreview" style="width:54px; height:54px; border:1px solid var(--border-strong);"></div>
+              <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir une photo<input type="file" id="editClientLogoFile" accept="image/*" style="display:none"></label>
+              <button class="btn secondary" id="editClientLogoClear" type="button">Retirer le logo</button>
+            </div>
+            <div class="muted" style="font-size:11.5px; margin-top:6px;">Depuis votre ordinateur, ou collez une URL ci-dessous.</div>
+          </div>
+          <div class="field">
+            <label>… ou URL du logo</label>
+            <input type="text" class="input" id="editClientLogo" placeholder="https://…/logo.png">
+          </div>
+          <div id="editClientAlert"></div>
+          <div style="display:flex; justify-content:flex-end; gap:8px;">
+            <button class="btn secondary" id="editClientCancel" type="button">Annuler</button>
+            <button class="btn" id="editClientSave">Enregistrer les modifications</button>
+          </div>
+        </div>
       </div>
       <!-- File tab -->
       <div class="atab-pane" data-pane="file" style="display:none">
@@ -1571,7 +1675,7 @@
       </div>
       <!-- Comptes & clients tab -->
       <div class="atab-pane" data-pane="accounts" style="display:none">
-        <p style="margin:0 0 12px">Le client choisi dans l'en-tête ci-dessus pilote toutes les actions. <button class="btn secondary" id="panelNewClientBtn" type="button" style="font-size:12px; padding:5px 10px; white-space:nowrap; margin-left:4px;">+ Nouveau client</button></p>
+        <p class="muted" style="margin:0 0 12px; font-size:12.5px;">Le client choisi dans l'en-tête ci-dessus pilote toutes les actions ci-dessous.</p>
 
         <!-- Formulaire « nouveau client » (masqué par défaut) -->
         <div class="acc open" id="newClientBlock" style="display:none; margin-top:12px;">
@@ -1612,108 +1716,116 @@
 
         <!-- Contexte du client sélectionné -->
         <div id="clientContext" style="display:none; margin-top:6px;">
-          <div class="cap-ctx-head">Environnement : <span id="panelClientTitle"></span></div>
+          <select id="editClientSelect" style="display:none;"></select>
+          <!-- Accès & comptes du client -->
+          <div>
+            <div class="acc-section">
+              <div class="acc-section-head">
+                <span class="acc-section-title">Comptes existants</span>
+                <button class="btn secondary" id="usersRefresh" type="button" style="font-size:12px; padding:5px 10px;">Rafraîchir</button>
+              </div>
+              <div id="usersList" class="users-list muted" style="font-size:12.5px;">Chargement…</div>
+              <button class="add-user-btn" id="addUserToggle" type="button">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Ajouter un utilisateur
+              </button>
+            </div>
 
-          <div class="acc open">
-            <button class="acc-head" type="button"><span>Infos du client</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-            <div class="acc-body">
-              <select id="editClientSelect" style="display:none;"></select>
-              <div class="field">
-                <label>Nom du client</label>
-                <input type="text" class="input" id="editClientName" maxlength="60">
-              </div>
-              <div class="field">
-                <label>Consultant responsable</label>
-                <select id="editClientConsultant" class="input"><option value="">— Aucun —</option></select>
-              </div>
-              <div class="field">
-                <label>Photo / logo</label>
-                <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
-                  <div class="client-logo" id="editClientLogoPreview" style="width:54px; height:54px; border:1px solid var(--border-strong);"></div>
-                  <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir une photo<input type="file" id="editClientLogoFile" accept="image/*" style="display:none"></label>
-                  <button class="btn secondary" id="editClientLogoClear" type="button">Retirer le logo</button>
+            <div class="create-user" id="createUserBlock" style="display:none;">
+              <div class="cu-head">
+                <div class="cu-icon">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
                 </div>
-                <div class="muted" style="font-size:11.5px; margin-top:6px;">Depuis votre ordinateur, ou collez une URL ci-dessous.</div>
+                <div>
+                  <div class="cu-title">Créer un nouvel accès</div>
+                  <div class="cu-sub">Le client se connectera immédiatement avec ces identifiants.</div>
+                </div>
               </div>
-              <div class="field">
-                <label>… ou URL du logo</label>
-                <input type="text" class="input" id="editClientLogo" placeholder="https://…/logo.png">
-              </div>
-              <div id="editClientAlert"></div>
-              <div style="display:flex; justify-content:flex-end;"><button class="btn" id="editClientSave">Enregistrer les modifications</button></div>
-            </div>
-          </div>
-
-          <div class="acc">
-            <button class="acc-head" type="button"><span>Accès / comptes du client</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-            <div class="acc-body">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <strong style="font-size:12.5px;">Comptes existants</strong>
-                <button class="btn secondary" id="usersRefresh" type="button" style="font-size:12px; padding:6px 10px;">Rafraîchir</button>
-              </div>
-              <div id="usersList" class="muted" style="font-size:12.5px;">Chargement…</div>
-              <div style="border-top:1px solid var(--border); margin:16px 0 12px;"></div>
-              <strong style="font-size:12.5px; display:block; margin-bottom:8px;">Créer un nouvel accès</strong>
               <select id="newUserClient" style="display:none;"></select>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div class="field"><label>Prénom</label><input type="text" class="input" id="newUserFirst" placeholder="Marie" autocomplete="off"></div>
-                <div class="field"><label>Nom</label><input type="text" class="input" id="newUserLast" placeholder="Dupont" autocomplete="off"></div>
+
+              <div class="cu-group">
+                <div class="cu-group-label"><span class="cu-step">1</span> Identité du contact</div>
+                <div class="cu-field-grid">
+                  <div class="field"><label>Prénom</label><input type="text" class="input" id="newUserFirst" placeholder="Marie" autocomplete="off"></div>
+                  <div class="field"><label>Nom</label><input type="text" class="input" id="newUserLast" placeholder="Dupont" autocomplete="off"></div>
+                </div>
               </div>
-              <div class="field">
-                <label>E-mail du client</label>
-                <input type="email" class="input" id="newUserEmail" placeholder="contact@entreprise.com" autocomplete="off">
+
+              <div class="cu-group">
+                <div class="cu-group-label"><span class="cu-step">2</span> Identifiants de connexion</div>
+                <div class="field"><label>E-mail</label><input type="email" class="input" id="newUserEmail" placeholder="contact@entreprise.com" autocomplete="off"></div>
+                <div class="field"><label>Mot de passe initial <span class="req-note">min. 8 caractères</span></label><input type="text" class="input" id="newUserPassword" placeholder="à communiquer au client" autocomplete="off"></div>
               </div>
-              <div class="field">
-                <label>Mot de passe initial (≥ 8 caractères)</label>
-                <input type="text" class="input" id="newUserPassword" placeholder="à communiquer au client" autocomplete="off">
-              </div>
-              <div class="muted" style="font-size:11.5px; margin-bottom:8px;">Le client pourra se connecter immédiatement avec ces identifiants (e-mail déjà confirmé).</div>
+
               <div id="newUserAlert"></div>
-              <div style="display:flex; justify-content:flex-end;"><button class="btn" id="newUserCreate">Créer l'accès</button></div>
+              <button class="btn" id="newUserCreate" style="width:100%; margin-top:2px;">Créer l'accès</button>
             </div>
           </div>
 
-          <div class="acc">
-            <button class="acc-head" type="button"><span>Réinitialiser les données</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-            <div class="acc-body">
-              <p class="muted" style="font-size:12px; margin:0 0 10px;">Supprime <strong>toutes</strong> les opportunités importées pour ce client. Action irréversible.</p>
-              <select id="resetDataClient" style="display:none;"></select>
-              <div id="resetDataAlert"></div>
-              <div style="display:flex; justify-content:flex-end;"><button class="btn" id="resetDataBtn" type="button" style="background:#a02323;">Supprimer les données de ce client</button></div>
-            </div>
+          <!-- Réinitialiser les données -->
+          <div class="acc-section" style="margin-top:22px; padding-top:18px; border-top:1px solid var(--border);">
+            <div class="acc-section-head"><span class="acc-section-title">Réinitialiser les données</span></div>
+            <p class="muted" style="font-size:12px; margin:0 0 10px;">Supprime <strong>toutes</strong> les opportunités importées pour ce client. Action irréversible.</p>
+            <select id="resetDataClient" style="display:none;"></select>
+            <div id="resetDataAlert"></div>
+            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="resetDataBtn" type="button" style="background:#a02323;">Supprimer les données de ce client</button></div>
           </div>
         </div>
 
-        <!-- Gestion des consultants (global, indépendant du client) -->
-        <div class="acc" style="margin-top:14px;">
-          <button class="acc-head" type="button"><span>Consultants</span><svg class="acc-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
-          <div class="acc-body">
-            <p class="muted" style="font-size:12px; margin:0 0 12px;">Créez vos consultants et leur photo, puis associez-les à un client via « Infos du client » ou à la création.</p>
-            <div class="field"><label>Nom du consultant</label><input type="text" class="input" id="newConsName" placeholder="Prénom Nom"></div>
-            <div class="field">
-              <label>Photo (optionnel)</label>
-              <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
-                <div class="client-logo" id="newConsPhotoPreview" style="width:48px;height:48px;border-radius:50%;border:1px solid var(--border-strong);"></div>
-                <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir<input type="file" id="newConsPhotoFile" accept="image/*" style="display:none"></label>
-                <button class="btn secondary" id="newConsPhotoClear" type="button">Retirer</button>
-              </div>
-            </div>
-            <div id="newConsAlert"></div>
-            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="newConsCreate" type="button">Ajouter le consultant</button></div>
-            <div style="border-top:1px solid var(--border); margin:16px 0 12px;"></div>
-            <div class="field"><label>Modifier un consultant</label><select id="editConsSelect" class="input"></select></div>
-            <div class="field"><label>Nom</label><input type="text" class="input" id="editConsName"></div>
-            <div class="field">
-              <label>Photo</label>
-              <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
-                <div class="client-logo" id="editConsPhotoPreview" style="width:48px;height:48px;border-radius:50%;border:1px solid var(--border-strong);"></div>
-                <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir<input type="file" id="editConsPhotoFile" accept="image/*" style="display:none"></label>
-                <button class="btn secondary" id="editConsPhotoClear" type="button">Retirer la photo</button>
-              </div>
-            </div>
-            <div id="editConsAlert"></div>
-            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="editConsSave" type="button">Enregistrer</button></div>
+      </div>
+
+      <!-- Consultants tab (global, indépendant du client) -->
+      <div class="atab-pane" data-pane="consultants" style="display:none">
+        <p class="muted" style="font-size:12.5px; margin:0 0 16px;">Vos consultants et les sociétés qui leur sont attribuées. Associez un consultant à un client via « Infos du client ».</p>
+
+        <div class="acc-section">
+          <div class="acc-section-head"><span class="acc-section-title">Consultants</span></div>
+          <div id="consultantsList" class="users-list muted" style="font-size:12.5px;">Chargement…</div>
+          <button class="add-user-btn" id="addConsToggle" type="button">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter un consultant
+          </button>
+        </div>
+
+        <!-- Réattribution des sociétés entre consultants -->
+        <div class="acc-section" style="margin-top:20px;">
+          <div class="acc-section-head"><span class="acc-section-title">Attribution des sociétés</span></div>
+          <p class="muted" style="font-size:11.5px; margin:0 0 10px;">Choisissez le consultant responsable de chaque société.</p>
+          <div id="consAssignList" class="muted" style="font-size:12.5px;">Chargement…</div>
+        </div>
+
+        <div class="create-user" id="createConsBlock" style="display:none; margin-bottom:18px;">
+          <div class="cu-head">
+            <div class="cu-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>
+            <div><div class="cu-title">Nouveau consultant</div><div class="cu-sub">Ajoutez un membre de l'équipe et sa photo.</div></div>
           </div>
+          <div class="field"><label>Nom du consultant</label><input type="text" class="input" id="newConsName" placeholder="Prénom Nom"></div>
+          <div class="field">
+            <label>Photo <span class="req-note">optionnel</span></label>
+            <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
+              <div class="client-logo" id="newConsPhotoPreview" style="width:48px;height:48px;border-radius:50%;border:1px solid var(--border-strong);"></div>
+              <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir<input type="file" id="newConsPhotoFile" accept="image/*" style="display:none"></label>
+              <button class="btn secondary" id="newConsPhotoClear" type="button">Retirer</button>
+            </div>
+          </div>
+          <div id="newConsAlert"></div>
+          <button class="btn" id="newConsCreate" type="button" style="width:100%; margin-top:2px;">Ajouter le consultant</button>
+        </div>
+
+        <div class="acc-section" id="consEditBlock" style="display:none; margin-top:18px;">
+          <div class="acc-section-head"><span class="acc-section-title">Modifier un consultant</span></div>
+          <div class="field"><label>Consultant</label><select id="editConsSelect" class="input"></select></div>
+          <div class="field"><label>Nom</label><input type="text" class="input" id="editConsName"></div>
+          <div class="field">
+            <label>Photo</label>
+            <div style="display:flex; align-items:center; gap:14px; margin-top:4px;">
+              <div class="client-logo" id="editConsPhotoPreview" style="width:48px;height:48px;border-radius:50%;border:1px solid var(--border-strong);"></div>
+              <label class="btn secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Choisir<input type="file" id="editConsPhotoFile" accept="image/*" style="display:none"></label>
+              <button class="btn secondary" id="editConsPhotoClear" type="button">Retirer la photo</button>
+            </div>
+          </div>
+          <div id="editConsAlert"></div>
+          <div style="display:flex; justify-content:flex-end;"><button class="btn" id="editConsSave" type="button">Enregistrer</button></div>
         </div>
       </div>
       <!-- Logs tab -->
@@ -3700,6 +3812,7 @@ function openAdmin() {
   if (sb) {
     if (currentProfile && currentProfile.role === 'admin') {
       openModal('adminModal');
+      if (typeof updateAdminTabsVisibility === 'function') updateAdminTabsVisibility();
     } else {
       // Utilisateur client : proposer la déconnexion
       openLogoutConfirm();
@@ -3707,7 +3820,7 @@ function openAdmin() {
     return;
   }
   // Mode démo local : code d'accès
-  if (adminAuthed) { openModal('adminModal'); return; }
+  if (adminAuthed) { openModal('adminModal'); if (typeof updateAdminTabsVisibility === 'function') updateAdminTabsVisibility(); return; }
   openModal('passModal');
   setTimeout(() => document.getElementById('passInput').focus(), 80);
 }
@@ -3731,24 +3844,50 @@ document.getElementById('passInput').addEventListener('keydown', e => { if (e.ke
 document.querySelectorAll('.acc-head').forEach(h => {
   h.addEventListener('click', () => { h.parentElement.classList.toggle('open'); });
 });
+function activateAdminTab(name) {
+  document.querySelectorAll('.tab-bar .t').forEach(x => x.classList.toggle('active', x.dataset.atab === name));
+  document.querySelectorAll('.atab-pane').forEach(p => { p.style.display = (p.dataset.pane === name) ? '' : 'none'; });
+  if (name === 'logs') renderAccessLogs();
+}
 document.querySelectorAll('.tab-bar .t').forEach(t => {
-  t.addEventListener('click', () => {
-    document.querySelectorAll('.tab-bar .t').forEach(x => x.classList.remove('active'));
-    t.classList.add('active');
-    const target = t.dataset.atab;
-    document.querySelectorAll('.atab-pane').forEach(p => {
-      p.style.display = (p.dataset.pane === target) ? '' : 'none';
-    });
-    if (target === 'logs') renderAccessLogs();
-  });
+  t.addEventListener('click', () => activateAdminTab(t.dataset.atab));
 });
+// Les onglets liés à un client (JSON, Importer, Profil, Comptes) n'apparaissent qu'une fois
+// un client sélectionné. « Logs » reste toujours accessible.
+function updateAdminTabsVisibility() {
+  const has = !!adminSelectedClientId;
+  document.querySelectorAll('.tab-bar .t').forEach(t => {
+    const a = t.dataset.atab;
+    let show;
+    if (a === 'user' || a === 'logs') show = true;          // Profil + Logs : toujours
+    else if (a === 'consultants') show = !has;              // Consultant : seulement sans client
+    else if (a === 'json' || a === 'accounts') show = has;  // JSON + Accès : seulement avec client
+    else show = false;                                      // « Importer un fichier » : masqué
+    t.style.display = show ? '' : 'none';
+  });
+  const hint = document.getElementById('adminNoClientHint');
+  if (hint) hint.style.display = has ? 'none' : '';
+  const lbl = document.getElementById('clientLabelBar');
+  if (lbl) lbl.style.display = has ? '' : 'none';
+  const activeT = document.querySelector('.tab-bar .t.active');
+  if (!has) {
+    if (!activeT || activeT.style.display === 'none') activateAdminTab('consultants');
+  } else if (!activeT || !['json', 'accounts'].includes(activeT.dataset.atab)) {
+    activateAdminTab('json');   // à la sélection d'un client → on ouvre l'import
+  }
+}
 /* Sélecteur de client (chips) de l'onglet Comptes & clients */
 const panelNewClientBtn = document.getElementById('panelNewClientBtn');
 if (panelNewClientBtn) panelNewClientBtn.addEventListener('click', () => {
+  // Rend l'onglet « Comptes & clients » visible même sans client sélectionné, puis ouvre le formulaire
+  const accTab = document.querySelector('.tab-bar .t[data-atab="accounts"]');
+  if (accTab) accTab.style.display = '';
+  const hint = document.getElementById('adminNoClientHint'); if (hint) hint.style.display = 'none';
+  if (typeof activateAdminTab === 'function') activateAdminTab('accounts');
   const nb = document.getElementById('newClientBlock');
   if (!nb) return;
-  const showing = nb.style.display !== 'none';
-  nb.style.display = showing ? 'none' : 'block';
+  nb.style.display = 'block';
+  nb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 });
 const newClientCancelBtn = document.getElementById('newClientCancel');
 if (newClientCancelBtn) newClientCancelBtn.addEventListener('click', () => {
@@ -3912,8 +4051,25 @@ if (editClientSaveEl) editClientSaveEl.addEventListener('click', async () => {
   loadEditClientFields();
   // Met à jour la marque en haut à gauche si ce client fait partie de la vue
   if (adminViewClientIds.includes(id)) applyViewBranding();
+  renderClientInfoView();
+  setClientInfoMode(false);   // retour en vue lecture seule après enregistrement
   box.innerHTML = '<div class="alert success">Modifications enregistrées.</div>';
   setTimeout(() => { box.innerHTML = ''; }, 2400);
+});
+// Crayon → passe en édition ; Annuler → revient en lecture seule sans sauvegarder
+const editClientToggleEl = document.getElementById('editClientToggle');
+if (editClientToggleEl) editClientToggleEl.addEventListener('click', () => setClientInfoMode(true));
+const editClientCancelEl = document.getElementById('editClientCancel');
+if (editClientCancelEl) editClientCancelEl.addEventListener('click', () => { loadEditClientFields(); setClientInfoMode(false); });
+// « Ajouter un utilisateur » → déploie le formulaire de création
+const addUserToggleEl = document.getElementById('addUserToggle');
+if (addUserToggleEl) addUserToggleEl.addEventListener('click', () => {
+  const blk = document.getElementById('createUserBlock');
+  if (!blk) return;
+  const show = blk.style.display === 'none';
+  blk.style.display = show ? '' : 'none';
+  addUserToggleEl.style.display = show ? 'none' : '';
+  if (show) blk.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 });
 // 2. Créer un accès de connexion — via l'Edge Function sécurisée (service_role côté serveur)
 const newUserBtn = document.getElementById('newUserCreate');
@@ -3950,6 +4106,11 @@ if (newUserBtn) newUserBtn.addEventListener('click', async () => {
   document.getElementById('newUserPassword').value = '';
   box.innerHTML = `<div class="alert success">Accès créé pour ${escapeHTML(email)}. Communiquez-lui l'URL du dashboard + ces identifiants.</div>`;
   renderUsersList();
+  // Referme le formulaire et réaffiche le bouton « + Ajouter un utilisateur »
+  const blk = document.getElementById('createUserBlock');
+  const tgl = document.getElementById('addUserToggle');
+  if (blk) blk.style.display = 'none';
+  if (tgl) tgl.style.display = '';
 });
 
 /* ===== 4. Comptes existants : lister / modifier / supprimer ===== */
@@ -4168,10 +4329,84 @@ async function loadConsultants() {
     const sel = document.getElementById(id);
     if (sel) { const keep = sel.value; sel.innerHTML = consOpts; sel.value = keep; }
   });
+  renderConsultantsList(allNames);
+  renderConsAssign(allNames);
+}
+// Réattribution des sociétés : une ligne par client avec un sélecteur de consultant
+function renderConsAssign(allNames) {
+  const box = document.getElementById('consAssignList');
+  if (!box) return;
+  const names = allNames || Object.keys(adminConsultants).sort((a, b) => a.localeCompare(b, 'fr'));
+  if (!adminClients.length) { box.textContent = 'Aucune société.'; return; }
+  const opts = cur => '<option value="">— Aucun —</option>' +
+    names.map(n => `<option value="${escapeHTML(n)}"${n === cur ? ' selected' : ''}>${escapeHTML(n)}</option>`).join('');
+  box.innerHTML = adminClients.slice().sort((a, b) => a.name.localeCompare(b.name, 'fr')).map(c => `
+    <div class="assign-row">
+      <span class="assign-name">${escapeHTML(c.name)}</span>
+      <select class="input assign-select" data-cid="${c.id}">${opts(c.consultant || '')}</select>
+    </div>`).join('');
+  box.querySelectorAll('.assign-select').forEach(sel => sel.addEventListener('change', async () => {
+    const id = sel.dataset.cid;
+    const val = sel.value || null;
+    sel.disabled = true;
+    const { error } = await sb.from('clients').update({ consultant: val }).eq('id', id);
+    sel.disabled = false;
+    if (!error) { await refreshAdminClients(); await loadConsultants(); renderClientNav(); }
+  }));
+}
+// Liste des consultants (façon « comptes »), avec leurs sociétés attribuées
+function consInitials(name) {
+  const parts = String(name || '').trim().split(/\s+/);
+  return ((parts[0] || '')[0] || '' ).toUpperCase() + ((parts[1] || '')[0] || '').toUpperCase();
+}
+function renderConsultantsList(allNames) {
+  const box = document.getElementById('consultantsList');
+  if (!box) return;
+  const names = allNames || (() => {
+    const s = new Set(Object.keys(adminConsultants));
+    adminClients.forEach(c => { if (c.consultant) s.add(c.consultant); });
+    return [...s].sort((a, b) => a.localeCompare(b, 'fr'));
+  })();
+  if (!names.length) { box.textContent = 'Aucun consultant pour le moment.'; return; }
+  box.innerHTML = names.map(n => {
+    const cons = adminConsultants[n];
+    const avatar = (cons && cons.photo_url)
+      ? `<img src="${escapeHTML(cons.photo_url)}" alt="" style="width:100%;height:100%;object-fit:cover;">`
+      : `<span>${escapeHTML(consInitials(n))}</span>`;
+    const clients = adminClients.filter(c => c.consultant === n);
+    const chips = clients.length
+      ? clients.map(c => `<span class="cons-client-chip">${escapeHTML(c.name)}</span>`).join('')
+      : `<span class="cons-none">Aucune société attribuée</span>`;
+    const noFiche = cons ? '' : ` <span class="muted" style="font-weight:400; font-size:11px;">(sans fiche)</span>`;
+    return `<div class="cadm-row">
+      <div class="cadm-avatar">${avatar}</div>
+      <div class="cadm-meta">
+        <div class="cadm-name">${escapeHTML(n)}${noFiche}<span class="cadm-count">${clients.length} société${clients.length > 1 ? 's' : ''}</span></div>
+        <div class="cadm-clients">${chips}</div>
+      </div>
+      <button class="btn secondary cons-edit" type="button" data-name="${escapeHTML(n)}" style="font-size:11.5px; padding:5px 9px; flex:0 0 auto;">Modifier</button>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('.cons-edit').forEach(b => b.addEventListener('click', () => {
+    const sel = document.getElementById('editConsSelect');
+    if (sel) { sel.value = b.dataset.name; sel.dispatchEvent(new Event('change')); }
+    const eb = document.getElementById('consEditBlock');
+    if (eb) { eb.style.display = ''; eb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  }));
 }
 let newConsPhotoData = null, editConsPhotoData = null, editConsPhotoTouched = false;
 function _consReadImg(input, cb) { const f = input.files[0]; if (!f) return; const r = new FileReader(); r.onload = e => cb(e.target.result); r.readAsDataURL(f); }
 (function wireConsultants() {
+  // « + Ajouter un consultant » déploie le formulaire de création
+  const addTgl = document.getElementById('addConsToggle');
+  if (addTgl) addTgl.addEventListener('click', () => {
+    const blk = document.getElementById('createConsBlock');
+    if (!blk) return;
+    const show = blk.style.display === 'none';
+    blk.style.display = show ? '' : 'none';
+    addTgl.style.display = show ? 'none' : '';
+    if (show) blk.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
   const nf = document.getElementById('newConsPhotoFile');
   if (nf) nf.addEventListener('change', () => _consReadImg(nf, d => { newConsPhotoData = d; const p = document.getElementById('newConsPhotoPreview'); if (p) p.innerHTML = `<img src="${d}" style="width:100%;height:100%;object-fit:cover;">`; }));
   const ncl = document.getElementById('newConsPhotoClear');
@@ -4187,6 +4422,9 @@ function _consReadImg(input, cb) { const f = input.files[0]; if (!f) return; con
     const p = document.getElementById('newConsPhotoPreview'); if (p) p.innerHTML = ''; if (nf) nf.value = '';
     box.innerHTML = '<div class="alert success">Consultant ajouté.</div>';
     await loadConsultants(); renderClientNav();
+    // Referme le formulaire et réaffiche le bouton
+    const blk = document.getElementById('createConsBlock'); if (blk) blk.style.display = 'none';
+    const tgl = document.getElementById('addConsToggle'); if (tgl) tgl.style.display = '';
   });
   const esel = document.getElementById('editConsSelect');
   if (esel) esel.addEventListener('change', () => {
@@ -4578,7 +4816,11 @@ function selectPanelClient(id) {
   if (empty) empty.style.display = id ? 'none' : '';
   const nb = document.getElementById('newClientBlock');
   if (nb) nb.style.display = 'none';
+  // Referme le formulaire d'ajout d'utilisateur
+  const _blk = document.getElementById('createUserBlock'); if (_blk) _blk.style.display = 'none';
+  const _tgl = document.getElementById('addUserToggle'); if (_tgl) _tgl.style.display = '';
   renderUsersList();
+  updateAdminTabsVisibility();
 }
 // Pré-remplit les champs de "Modifier un client" selon la sélection
 function loadEditClientFields() {
@@ -4596,6 +4838,26 @@ function loadEditClientFields() {
   if (urlI)  urlI.value = '';
   if (fileI) fileI.value = '';
   if (prev)  prev.innerHTML = (c && c.logo_url) ? `<img src="${c.logo_url}" alt="Logo" style="width:100%;height:100%;object-fit:contain;">` : '';
+  renderClientInfoView();
+  setClientInfoMode(false);   // par défaut en lecture seule
+}
+// Remplit la vue lecture seule des infos client
+function renderClientInfoView() {
+  const es = document.getElementById('editClientSelect');
+  const c = es ? adminClients.find(x => x.id === es.value) : null;
+  const nm = document.getElementById('viewClientName');
+  const cs = document.getElementById('viewClientConsultant');
+  const lg = document.getElementById('viewClientLogo');
+  if (nm) nm.textContent = c ? c.name : '—';
+  if (cs) cs.textContent = (c && c.consultant) ? `Consultant : ${c.consultant}` : 'Aucun consultant assigné';
+  if (lg) lg.innerHTML = (c && c.logo_url) ? `<img src="${c.logo_url}" alt="Logo" style="width:100%;height:100%;object-fit:contain;">` : '';
+}
+// Bascule entre vue lecture seule et édition
+function setClientInfoMode(edit) {
+  const v = document.getElementById('clientInfoView');
+  const e = document.getElementById('clientInfoEdit');
+  if (v) v.style.display = edit ? 'none' : '';
+  if (e) e.style.display = edit ? '' : 'none';
 }
 // Recharge la liste des clients depuis Supabase et rafraîchit les sélecteurs
 async function refreshAdminClients() {
@@ -4603,6 +4865,7 @@ async function refreshAdminClients() {
   adminClients = data || [];
   populateAdminClientSelect();
   renderClientNav();
+  if (typeof renderConsultantsList === 'function') renderConsultantsList();
 }
 async function loadFromSupabase() {
   const isAdmin = currentProfile && currentProfile.role === 'admin';
