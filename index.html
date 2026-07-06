@@ -2625,14 +2625,28 @@ function renderKPIs(rows) {
   const avgAge = ageVals.length ? Math.round(ageVals.reduce((s,v) => s + v, 0) / ageVals.length) : null;
   const dormant = active.filter(r => { const ds = daysSince(r.followUp); return ds != null && ds > 21; });
   const dormantPct = active.length ? Math.round((dormant.length / active.length) * 100) : 0;
-  // Nouvelles opportunités (30 j) + 30 j précédents
-  // Fenêtre = période active (en jours), sinon 30 j par défaut. Comparaison sur la période précédente
-  // de même durée, calculée sur rawRows (hors période) pour que le « précédent » ne soit pas vide.
-  const windowDays = (periodFilterValue && periodFilterValue > 0) ? periodFilterValue : 30;
+  // Nouvelles opportunités : fenêtre = plage de dates précise (calendrier) si posée,
+  // sinon période préréglée (pastilles), sinon 30 j par défaut. Comparaison sur la
+  // période précédente de même durée, calculée sur rawRows (hors filtre période).
   const baseNew = rawRows.filter(r => !selectedUserIds.length || selectedUserIds.includes(r.userId));
-  const inWin = (lo, hi) => baseNew.filter(r => { const d = parseDateFR(r.createdAt); if (!d) return false; const days = (nowMs - d.getTime()) / 86400000; return days >= lo && days < hi; }).length;
-  const new30 = inWin(0, windowDays), prev30 = inWin(windowDays, windowDays * 2);
-  const newWinLabel = (periodFilterValue && periodFilterValue > 0) ? periodLabel(periodFilterValue) : '30 j';
+  const createdAtOf = r => parseDateFR(r.createdAt);
+  const countBetween = (from, to) => baseNew.filter(r => { const d = createdAtOf(r); return d && d >= from && d <= to; }).length;
+  let new30, prev30, newWinLabel;
+  if (dateFrom || dateTo) {
+    // Plage de dates précise : borne la fenêtre à ce qui est sélectionné
+    const from = dateFrom || new Date(0);
+    const to = dateTo || new Date();
+    const lenMs = Math.max(86400000, to.getTime() - from.getTime());
+    new30 = countBetween(from, to);
+    prev30 = countBetween(new Date(from.getTime() - lenMs), new Date(from.getTime() - 1));
+    const fmt = d => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+    newWinLabel = `${dateFrom ? fmt(dateFrom) : '…'} → ${dateTo ? fmt(dateTo) : '…'}`;
+  } else {
+    const windowDays = (periodFilterValue && periodFilterValue > 0) ? periodFilterValue : 30;
+    const inWin = (lo, hi) => baseNew.filter(r => { const d = createdAtOf(r); if (!d) return false; const days = (nowMs - d.getTime()) / 86400000; return days >= lo && days < hi; }).length;
+    new30 = inWin(0, windowDays); prev30 = inWin(windowDays, windowDays * 2);
+    newWinLabel = (periodFilterValue && periodFilterValue > 0) ? periodLabel(periodFilterValue) : '30 j';
+  }
   const _nw = document.getElementById('kpiNewWindow'); if (_nw) _nw.textContent = `(${newWinLabel})`;
   // Devis en cours (Devis/Offre envoyé + Relance devis)
   const devisList = rows.filter(isDevisStatus);
