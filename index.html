@@ -1851,13 +1851,20 @@
             </div>
           </div>
 
-          <!-- Réinitialiser les données -->
+          <!-- Zone de danger : réinitialiser les données / supprimer le client -->
           <div class="acc-section" style="margin-top:22px; padding-top:18px; border-top:1px solid var(--border);">
             <div class="acc-section-head"><span class="acc-section-title">Réinitialiser les données</span></div>
             <p class="muted" style="font-size:12px; margin:0 0 10px;">Supprime <strong>toutes</strong> les opportunités importées pour ce client. Action irréversible.</p>
             <select id="resetDataClient" style="display:none;"></select>
             <div id="resetDataAlert"></div>
             <div style="display:flex; justify-content:flex-end;"><button class="btn" id="resetDataBtn" type="button" style="background:#a02323;">Supprimer les données de ce client</button></div>
+          </div>
+
+          <div class="acc-section" style="margin-top:18px; padding-top:18px; border-top:1px solid var(--border);">
+            <div class="acc-section-head"><span class="acc-section-title" style="color:#a02323;">Supprimer le client</span></div>
+            <p class="muted" style="font-size:12px; margin:0 0 10px;">Supprime définitivement <strong>ce client</strong>, toutes ses opportunités et son environnement. Les comptes de connexion associés ne sont pas supprimés. Action <strong>irréversible</strong>.</p>
+            <div id="deleteClientAlert"></div>
+            <div style="display:flex; justify-content:flex-end;"><button class="btn" id="deleteClientBtn" type="button" style="background:#7a1414;">Supprimer définitivement ce client</button></div>
           </div>
         </div>
 
@@ -1946,6 +1953,26 @@
         <div id="userAlert"></div>
         <div style="display:flex; justify-content:flex-end; gap:8px;">
           <button class="btn" id="userSave">Enregistrer l'utilisateur</button>
+        </div>
+
+        <!-- Changer son mot de passe -->
+        <div class="acc-section" style="margin-top:22px; padding-top:18px; border-top:1px solid var(--border);">
+          <div class="acc-section-head"><span class="acc-section-title">Mon mot de passe</span></div>
+          <p class="muted" style="font-size:11.5px; margin:0 0 10px;">Définissez un nouveau mot de passe pour votre compte (session en cours).</p>
+          <div class="field"><label>Nouveau mot de passe <span class="req-note">min. 8 caractères</span></label><input type="password" class="input" id="ownNewPass" autocomplete="new-password" placeholder="••••••••"></div>
+          <div class="field"><label>Confirmer</label><input type="password" class="input" id="ownNewPass2" autocomplete="new-password" placeholder="••••••••"></div>
+          <div id="ownPassAlert"></div>
+          <div style="display:flex; justify-content:flex-end;"><button class="btn" id="ownPassSave" type="button">Changer mon mot de passe</button></div>
+        </div>
+
+        <!-- Comptes administrateurs : régénérer un mot de passe -->
+        <div class="acc-section" id="adminAccountsSection" style="margin-top:22px; padding-top:18px; border-top:1px solid var(--border);">
+          <div class="acc-section-head">
+            <span class="acc-section-title">Comptes administrateurs</span>
+            <button class="btn secondary" id="adminAccountsRefresh" type="button" style="font-size:12px; padding:5px 10px;">Rafraîchir</button>
+          </div>
+          <p class="muted" style="font-size:11.5px; margin:0 0 10px;">Régénérez le mot de passe d'un autre administrateur (utile en cas d'oubli).</p>
+          <div id="adminAccountsList" class="users-list muted" style="font-size:12.5px;">Chargement…</div>
         </div>
       </div>
     </div>
@@ -3974,6 +4001,7 @@ function activateAdminTab(name) {
   document.querySelectorAll('.tab-bar .t').forEach(x => x.classList.toggle('active', x.dataset.atab === name));
   document.querySelectorAll('.atab-pane').forEach(p => { p.style.display = (p.dataset.pane === name) ? '' : 'none'; });
   if (name === 'logs') renderAccessLogs();
+  if (name === 'user' && typeof renderAdminAccounts === 'function') renderAdminAccounts();
 }
 document.querySelectorAll('.tab-bar .t').forEach(t => {
   t.addEventListener('click', () => activateAdminTab(t.dataset.atab));
@@ -4336,6 +4364,44 @@ async function renderUsersList() {
   box.innerHTML = html;
 }
 
+// Liste des comptes administrateurs (dans le Profil) avec régénération de mot de passe
+async function renderAdminAccounts() {
+  const box = document.getElementById('adminAccountsList');
+  if (!box || !sb) return;
+  box.textContent = 'Chargement…';
+  const { data, error } = await sb.rpc('admin_list_users');
+  if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
+  const admins = (data || []).filter(u => u.role === 'admin');
+  if (!admins.length) { box.textContent = 'Aucun compte administrateur.'; return; }
+  box.innerHTML = admins.map(u => `
+    <div class="aacc-row" data-id="${u.id}" style="border:1px solid var(--border); border-radius:9px; padding:9px 11px; margin-bottom:8px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+        <div style="min-width:0; font-weight:600; overflow:hidden; text-overflow:ellipsis;">${escapeHTML(u.email)} <span class="badge b-devis" style="font-size:10.5px;">admin</span></div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;">
+        <input type="text" class="input aacc-pass" placeholder="Nouveau mot de passe (≥ 8 car.)" autocomplete="off" style="flex:1 1 180px;">
+        <button class="btn aacc-reset" type="button" style="font-size:12px; padding:6px 11px; flex:0 0 auto;">Régénérer</button>
+      </div>
+      <div class="aacc-alert"></div>
+    </div>`).join('');
+}
+document.addEventListener('click', async (e) => {
+  if (!e.target || !e.target.classList || !e.target.classList.contains('aacc-reset')) return;
+  const row = e.target.closest('.aacc-row'); if (!row) return;
+  const id = row.dataset.id;
+  const pass = row.querySelector('.aacc-pass').value;
+  const a = row.querySelector('.aacc-alert');
+  if (pass.length < 8) { a.innerHTML = '<div class="alert error">8 caractères minimum.</div>'; return; }
+  e.target.disabled = true;
+  a.innerHTML = '<div class="alert">Mise à jour…</div>';
+  const res = await manageUser({ action: 'update', user_id: id, password: pass });
+  e.target.disabled = false;
+  if (!res.ok) { a.innerHTML = `<div class="alert error">${escapeHTML(res.msg)}</div>`; return; }
+  row.querySelector('.aacc-pass').value = '';
+  a.innerHTML = '<div class="alert success">Mot de passe régénéré. Communiquez-le à cet admin.</div>';
+});
+const adminAccountsRefreshBtn = document.getElementById('adminAccountsRefresh');
+if (adminAccountsRefreshBtn) adminAccountsRefreshBtn.addEventListener('click', renderAdminAccounts);
 async function manageUser(payload) {
   const { data, error } = await sb.functions.invoke('admin-manage-user', { body: payload });
   let msg = (data && data.error) ? data.error : ((error && error.message) || '');
@@ -4607,6 +4673,41 @@ document.addEventListener('click', async (e) => {
   box.innerHTML = '<div class="alert success">Données supprimées pour ce client.</div>';
   if (currentProfile && currentProfile.role === 'admin' && adminViewClientIds.includes(id)) await loadAdminView();
 });
+
+// Supprimer définitivement un client (opportunités + fiche client)
+const deleteClientBtn = document.getElementById('deleteClientBtn');
+if (deleteClientBtn) deleteClientBtn.addEventListener('click', () => {
+  const id = document.getElementById('resetDataClient').value || panelClientId;
+  const box = document.getElementById('deleteClientAlert');
+  if (!id) { box.innerHTML = '<div class="alert error">Aucun client sélectionné.</div>'; return; }
+  const name = (adminClients.find(c => c.id === id) || {}).name || 'ce client';
+  box.innerHTML = `<div class="alert error">Supprimer définitivement « ${escapeHTML(name)} » et toutes ses données ? <button class="btn" id="deleteClientConfirm" type="button" style="background:#7a1414; margin-left:8px; padding:4px 10px; font-size:12px;">Confirmer la suppression</button></div>`;
+});
+document.addEventListener('click', async (e) => {
+  if (!e.target || e.target.id !== 'deleteClientConfirm') return;
+  const id = document.getElementById('resetDataClient').value || panelClientId;
+  const box = document.getElementById('deleteClientAlert');
+  if (!id || !sb) { box.innerHTML = '<div class="alert error">Action impossible.</div>'; return; }
+  e.target.disabled = true;
+  box.innerHTML = '<div class="alert">Suppression en cours…</div>';
+  // 1) Opportunités du client
+  let { error } = await sb.from('opportunities').delete().eq('client_id', id);
+  if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
+  // 2) Fiche client
+  ({ error } = await sb.from('clients').delete().eq('id', id));
+  if (error) {
+    box.innerHTML = `<div class="alert error">Suppression impossible : ${escapeHTML(error.message)}<br><span class="muted" style="font-size:11.5px;">Astuce : supprimez d'abord les comptes de connexion liés à ce client (onglet Accès), puis réessayez.</span></div>`;
+    return;
+  }
+  box.innerHTML = '<div class="alert success">Client supprimé.</div>';
+  // 3) Nettoyage de l'état + rafraîchissement
+  adminSelectedClientId = null;
+  adminViewClientIds = adminViewClientIds.filter(x => x !== id);
+  await refreshAdminClients();
+  if (typeof renderImportClients === 'function') renderImportClients();
+  if (typeof selectPanelClient === 'function') selectPanelClient(null);
+  if (currentProfile && currentProfile.role === 'admin') await loadAdminView();
+});
 /* ======================== Branding ========================
    - Client (top-left)  : logo + nom
    - Utilisateur (bot.) : photo + nom
@@ -4752,6 +4853,25 @@ document.getElementById('userSave').addEventListener('click', async () => {
   }
   document.getElementById('userAlert').innerHTML = '<div class="alert success">Utilisateur enregistré.</div>';
   setTimeout(() => { document.getElementById('userAlert').innerHTML = ''; }, 2400);
+});
+// Changer son propre mot de passe (nécessite une session active)
+const ownPassSaveBtn = document.getElementById('ownPassSave');
+if (ownPassSaveBtn) ownPassSaveBtn.addEventListener('click', async () => {
+  const box = document.getElementById('ownPassAlert');
+  const p1 = document.getElementById('ownNewPass').value;
+  const p2 = document.getElementById('ownNewPass2').value;
+  box.innerHTML = '';
+  if (!sb) { box.innerHTML = '<div class="alert error">Supabase non configuré.</div>'; return; }
+  if (p1.length < 8) { box.innerHTML = '<div class="alert error">8 caractères minimum.</div>'; return; }
+  if (p1 !== p2) { box.innerHTML = '<div class="alert error">Les deux mots de passe ne correspondent pas.</div>'; return; }
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { box.innerHTML = '<div class="alert error">Session expirée — reconnectez-vous d\'abord.</div>'; return; }
+  box.innerHTML = '<div class="alert">Mise à jour…</div>';
+  const { error } = await sb.auth.updateUser({ password: p1 });
+  if (error) { box.innerHTML = `<div class="alert error">${escapeHTML(error.message)}</div>`; return; }
+  document.getElementById('ownNewPass').value = '';
+  document.getElementById('ownNewPass2').value = '';
+  box.innerHTML = '<div class="alert success">Mot de passe modifié. Il sera demandé à la prochaine connexion.</div>';
 });
 /* ======================== Supabase : authentification & données ======================== */
 function showLogin() {
